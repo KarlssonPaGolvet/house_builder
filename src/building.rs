@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::types::{PlacedBlock, PlacementSettings};
+use crate::types::{CurrentWorld, PlacedBlock, PlacementSettings};
 
 const GRID_SIZE: f32 = 1.0;
 
@@ -31,6 +31,29 @@ pub fn setup_scene(
         Camera3d::default(),
         Transform::from_xyz(-8.0, 10.0, 12.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
+}
+
+pub fn load_current_world_system(
+    current_world: Res<CurrentWorld>,
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    existing_blocks: Query<Entity, With<PlacedBlock>>,
+) {
+    // Clear any existing blocks first to prevent duplication on reload
+    for entity in existing_blocks.iter() {
+        commands.entity(entity).despawn();
+    }
+
+    if !current_world.name.is_empty() {
+        crate::save::load_house_from_disk(&current_world.name, &mut commands, &mut meshes, &mut materials);
+    }
+}
+
+pub fn cleanup_blocks(mut commands: Commands, query: Query<Entity, With<PlacedBlock>>) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn();
+    }
 }
 
 pub fn keyboard_shortcut_system(
@@ -161,7 +184,7 @@ pub fn place_wall_system(
 
             enum HitTarget {
                 Ground { hit_point: Vec3, normal: Vec3 },
-                Block { t: f32, normal: Vec3, center: Vec3, size: Vec3 },
+                Block { _t: f32, normal: Vec3, center: Vec3, size: Vec3 },
             }
 
             let mut closest_hit: Option<HitTarget> = None;
@@ -185,7 +208,7 @@ pub fn place_wall_system(
                     if t > 0.0 && t < min_t {
                         min_t = t;
                         closest_hit = Some(HitTarget::Block {
-                            t,
+                            _t: t,
                             normal,
                             center: block.center,
                             size: block.size,
@@ -203,7 +226,11 @@ pub fn place_wall_system(
                         center.z = (center.z / GRID_SIZE).round() * GRID_SIZE;
                         center
                     }
-                    HitTarget::Block { normal, center: hit_center, size: hit_size, .. } => {
+                    HitTarget::Block { normal, size: hit_size, .. } => {
+                        let hit_center = match target {
+                            HitTarget::Block { center, .. } => center,
+                            _ => unreachable!(),
+                        };
                         hit_center + normal * ((hit_size + settings.size) * 0.5)
                     }
                 };

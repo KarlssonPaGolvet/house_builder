@@ -3,6 +3,9 @@ use bevy::prelude::*;
 #[derive(States, Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub enum GameState {
     #[default]
+    MainMenu,
+    SavedHouses,
+    NewHouseInput,
     Playing,
     Paused,
 }
@@ -30,6 +33,16 @@ impl Default for PlacementSettings {
     }
 }
 
+#[derive(Resource, Default)]
+pub struct CurrentWorld {
+    pub name: String,
+}
+
+#[derive(Resource, Default)]
+pub struct TextInputBuffer {
+    pub text: String,
+}
+
 #[derive(Component)]
 pub struct PlacedBlock {
     pub center: Vec3,
@@ -54,3 +67,30 @@ pub struct ResumeButton;
 
 #[derive(Component)]
 pub struct QuitButton;
+
+#[derive(Component)]
+pub struct MainMenuRoot;
+
+#[derive(Component)]
+pub struct SavedHousesRoot;
+
+#[derive(Component)]
+pub struct NewHouseRoot;
+
+#[derive(Component)]
+pub struct MainMenuSavedHousesButton;
+
+#[derive(Component)]
+pub struct MainMenuNewHouseButton;
+
+#[derive(Component)]
+pub struct MainMenuQuitButton;
+
+#[derive(Component)]
+pub struct PauseSaveButton;
+
+#[derive(Component)]
+pub struct PauseSaveAndQuitButton;
+
+#[derive(Component)]
+pub struct NewHouseInputText;
