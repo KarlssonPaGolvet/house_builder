@@ -13,6 +13,8 @@ pub struct BlockSaveData {
     pub rotation_x: Option<f32>,
     #[serde(default)]
     pub rotation_y: Option<f32>,
+    #[serde(default)]
+    pub rotation_quat: Option<[f32; 4]>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -71,6 +73,12 @@ pub fn save_house_to_disk(
             rotation_angle: block.rotation_y,
             rotation_x: Some(block.rotation_x),
             rotation_y: Some(block.rotation_y),
+            rotation_quat: Some([
+                block.rotation.x,
+                block.rotation.y,
+                block.rotation.z,
+                block.rotation.w,
+            ]),
         });
     }
 
@@ -100,19 +108,24 @@ pub fn load_house_from_disk(
                 let color = Color::srgba(b.color[0], b.color[1], b.color[2], b.color[3]);
                 let rotation_x = b.rotation_x.unwrap_or(0.0);
                 let rotation_y = b.rotation_y.unwrap_or(b.rotation_angle);
+                let rotation = b
+                    .rotation_quat
+                    .map(|q| Quat::from_xyzw(q[0], q[1], q[2], q[3]))
+                    .unwrap_or_else(|| {
+                        Quat::from_rotation_y(rotation_y.to_radians())
+                            * Quat::from_rotation_x(rotation_x.to_radians())
+                    });
 
                 commands.spawn((
                     Mesh3d(meshes.add(Cuboid::new(size.x, size.y, size.z))),
                     MeshMaterial3d(materials.add(color)),
-                    Transform::from_translation(center).with_rotation(
-                        Quat::from_rotation_y(rotation_y.to_radians())
-                            * Quat::from_rotation_x(rotation_x.to_radians()),
-                    ),
+                    Transform::from_translation(center).with_rotation(rotation),
                     PlacedBlock {
                         center,
                         size,
                         rotation_x,
                         rotation_y,
+                        rotation,
                     },
                 ));
             }

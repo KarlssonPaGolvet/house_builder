@@ -8,11 +8,12 @@ use crate::save;
 use crate::types::PlacedBlock;
 use crate::types::{
     BlockMenuButton, BlockMenuState, ColorInputBuffer, ColorPickerState, ColourButton,
-    ControlsButton, ControlsText, CoordinateText, CurrentWorld, EditCoordinatesButton,
-    EditPositionState, GameState, MainMenuNewHouseButton, MainMenuQuitButton, MainMenuRoot,
-    MainMenuSavedHousesButton, NewHouseInputText, NewHouseRoot, PauseMenuRoot,
-    PauseSaveAndQuitButton, PauseSaveButton, PlacementSettings, ResumeButton, SavedHousesRoot,
-    StatusText, TextInputBuffer,
+    ControlsBackButton, ControlsButton, ControlsMenuRoot, CoordinateText, CurrentWorld,
+    EditCoordinatesButton, EditPositionState, GameMode, GameState, MainMenuNewHouseButton,
+    MainMenuQuitButton, MainMenuRoot, MainMenuSavedHousesButton, ModeConfirmationText,
+    NewHouseInputText, NewHouseRoot, PauseMenuRoot, PauseSaveAndQuitButton, PauseSaveButton,
+    PlacementSettings, PlayerDebugCoordinates, ResumeButton, SavedHousesRoot, StatusText,
+    SwitchModeButton, TextInputBuffer,
 };
 
 pub fn setup_ui(mut commands: Commands) {
@@ -83,6 +84,48 @@ pub fn setup_ui(mut commands: Commands) {
             ));
             spawn_compact_button(parent, "Edit", EditCoordinatesButton);
         });
+
+    commands.spawn((
+        Node {
+            position_type: PositionType::Absolute,
+            right: Val::Px(15.0),
+            top: Val::Px(15.0),
+            padding: UiRect::all(Val::Px(8.0)),
+            ..default()
+        },
+        BackgroundColor(Color::srgba(0.05, 0.05, 0.05, 0.8)),
+        Text::new("Player: --"),
+        TextFont {
+            font_size: FontSize::Px(14.0),
+            ..default()
+        },
+        TextColor(Color::srgb(0.8, 0.95, 1.0)),
+        PlayerDebugCoordinates,
+        GameHudRoot,
+    ));
+}
+
+pub fn update_player_debug_coordinates_system(
+    mode: Res<GameMode>,
+    camera_query: Query<&Transform, With<Camera3d>>,
+    mut text_query: Query<&mut Text, With<PlayerDebugCoordinates>>,
+) {
+    let Ok(camera) = camera_query.single() else {
+        return;
+    };
+    let Ok(mut text) = text_query.single_mut() else {
+        return;
+    };
+
+    if *mode == GameMode::Human {
+        let player_feet = camera.translation - Vec3::Y * 1.75;
+        text.0 = format!(
+            "Player\nX: {:.3}\nY: {:.3}\nZ: {:.3}",
+            camera.translation.x, player_feet.y, camera.translation.z
+        );
+    } else {
+        text.0 = "Player\nFree Mode".to_string();
+    }
 }
 
 fn spawn_button<C: Component>(parent: &mut ChildSpawnerCommands, label: &str, marker: C) {
@@ -163,7 +206,40 @@ fn spawn_menu_button<C: Component>(parent: &mut ChildSpawnerCommands, label: &st
         });
 }
 
+fn spawn_pause_action_button<C: Component>(
+    parent: &mut ChildSpawnerCommands,
+    label: &str,
+    marker: C,
+) {
+    parent
+        .spawn((
+            Button,
+            Node {
+                width: Val::Px(180.0),
+                height: Val::Px(45.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                border: UiRect::all(Val::Px(1.0)),
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.25, 0.25, 0.25)),
+            BorderColor::all(Color::WHITE),
+            marker,
+        ))
+        .with_children(|btn| {
+            btn.spawn((
+                Text::new(label),
+                TextFont {
+                    font_size: FontSize::Px(16.0),
+                    ..default()
+                },
+                TextColor(Color::WHITE),
+            ));
+        });
+}
+
 pub fn ui_interaction_system(
+    mode: Res<GameMode>,
     mut picker: ResMut<ColorPickerState>,
     mut block_menu: ResMut<BlockMenuState>,
     mut edit_position: ResMut<EditPositionState>,
@@ -171,6 +247,9 @@ pub fn ui_interaction_system(
     block_menu_buttons: Query<&Interaction, (Changed<Interaction>, With<BlockMenuButton>)>,
     edit_buttons: Query<&Interaction, (Changed<Interaction>, With<EditCoordinatesButton>)>,
 ) {
+    if *mode == GameMode::Human {
+        return;
+    }
     for interaction in colour_buttons.iter() {
         if *interaction == Interaction::Pressed {
             picker.is_open = true;
@@ -199,6 +278,7 @@ pub fn ui_interaction_system(
 pub fn color_picker_system(
     mut contexts: EguiContexts,
     mut settings: ResMut<PlacementSettings>,
+    mode: Res<GameMode>,
     mut color_input: ResMut<ColorInputBuffer>,
     mut picker: ResMut<ColorPickerState>,
     mut block_menu: ResMut<BlockMenuState>,
@@ -208,6 +288,9 @@ pub fn color_picker_system(
     mut blocks_query: Query<(&mut Transform, &mut PlacedBlock)>,
     mut coordinate_text: Query<&mut Text, With<CoordinateText>>,
 ) {
+    if *mode == GameMode::Human {
+        return;
+    }
     let Ok(ctx) = contexts.ctx_mut() else {
         return;
     };
@@ -879,7 +962,7 @@ pub fn setup_pause_menu(mut commands: Commands) {
                         border: UiRect::all(Val::Px(1.0)),
                         ..default()
                     },
-                    BackgroundColor(Color::srgb(0.2, 0.6, 0.2)),
+                    BackgroundColor(Color::srgb(0.25, 0.25, 0.25)),
                     BorderColor::all(Color::WHITE),
                     ResumeButton,
                 ))
@@ -920,20 +1003,16 @@ pub fn setup_pause_menu(mut commands: Commands) {
                     ));
                 });
 
+            spawn_pause_action_button(parent, "Switch Mode", SwitchModeButton);
+
             parent.spawn((
-                Text::new(
-                    "Move: WASD\nElevation: Space / Shift\nRotate view: Hold R + WASD\nRotate block: Arrow keys\nEdit block: B, then click a block\nSelect shape and size: Block Types\nSelect colour: Colour button\nDelete block: P\nPause: Esc",
-                ),
+                Text::new("Press Switch Mode to change mode"),
                 TextFont {
-                    font_size: FontSize::Px(14.0),
+                    font_size: FontSize::Px(13.0),
                     ..default()
                 },
-                TextColor(Color::WHITE),
-                Node {
-                    display: Display::None,
-                    ..default()
-                },
-                ControlsText,
+                TextColor(Color::srgb(0.8, 0.95, 1.0)),
+                ModeConfirmationText,
             ));
 
             parent
@@ -947,7 +1026,7 @@ pub fn setup_pause_menu(mut commands: Commands) {
                         border: UiRect::all(Val::Px(1.0)),
                         ..default()
                     },
-                    BackgroundColor(Color::srgb(0.2, 0.4, 0.7)),
+                    BackgroundColor(Color::srgb(0.25, 0.25, 0.25)),
                     BorderColor::all(Color::WHITE),
                     PauseSaveButton,
                 ))
@@ -973,7 +1052,7 @@ pub fn setup_pause_menu(mut commands: Commands) {
                         border: UiRect::all(Val::Px(1.0)),
                         ..default()
                     },
-                    BackgroundColor(Color::srgb(0.7, 0.2, 0.2)),
+                    BackgroundColor(Color::srgb(0.25, 0.25, 0.25)),
                     BorderColor::all(Color::WHITE),
                     PauseSaveAndQuitButton,
                 ))
@@ -996,18 +1075,107 @@ pub fn cleanup_pause_menu(mut commands: Commands, query: Query<Entity, With<Paus
     }
 }
 
+pub fn cleanup_controls_menu(mut commands: Commands, query: Query<Entity, With<ControlsMenuRoot>>) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn();
+    }
+}
+
+pub fn setup_controls_menu(mut commands: Commands) {
+    commands
+        .spawn((
+            Node {
+                position_type: PositionType::Absolute,
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                row_gap: Val::Px(20.0),
+                ..default()
+            },
+            BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.85)),
+            ControlsMenuRoot,
+        ))
+        .with_children(|parent| {
+            parent.spawn((
+                Text::new("CONTROLS"),
+                TextFont {
+                    font_size: FontSize::Px(32.0),
+                    ..default()
+                },
+                TextColor(Color::WHITE),
+            ));
+
+            parent
+                .spawn(Node {
+                    flex_direction: FlexDirection::Column,
+                    row_gap: Val::Px(24.0),
+                    align_items: AlignItems::Start,
+                    ..default()
+                })
+                .with_children(|columns| {
+                    spawn_controls_column(
+                        columns,
+                        "Free Mode",
+                        "WASD: Move\nSpace / Shift: Elevation\nHold R + WASD: Rotate view\nArrow keys: Rotate block\nB: Edit a block\nP: Delete mode\nBlock Types: Shape and size\nColour: Choose colour",
+                    );
+                    spawn_controls_column(
+                        columns,
+                        "Human Mode",
+                        "WASD: Walk\nMouse: Look around\nSpace: Jump\nSwitch Mode: Return to Free Mode\nF1: Return to start",
+                    );
+                });
+
+            spawn_pause_action_button(parent, "Back", ControlsBackButton);
+        });
+}
+
+fn spawn_controls_column(parent: &mut ChildSpawnerCommands, title: &str, controls: &str) {
+    parent
+        .spawn(Node {
+            width: Val::Px(260.0),
+            flex_direction: FlexDirection::Column,
+            row_gap: Val::Px(8.0),
+            ..default()
+        })
+        .with_children(|column| {
+            column.spawn((
+                Text::new(title),
+                TextFont {
+                    font_size: FontSize::Px(20.0),
+                    ..default()
+                },
+                TextColor(Color::srgb(0.8, 0.95, 1.0)),
+            ));
+            column.spawn((
+                Text::new(controls),
+                TextFont {
+                    font_size: FontSize::Px(14.0),
+                    ..default()
+                },
+                TextColor(Color::WHITE),
+            ));
+        });
+}
+
 pub fn pause_menu_interaction_system(
     mut commands: Commands,
     mut next_state: ResMut<NextState<GameState>>,
     current_world: Res<CurrentWorld>,
+    mut mode: ResMut<GameMode>,
+    mut camera_query: Query<&mut Transform, With<Camera3d>>,
     blocks_query: Query<(&PlacedBlock, &MeshMaterial3d<StandardMaterial>), With<PlacedBlock>>,
     materials: Res<Assets<StandardMaterial>>,
     pause_menu_query: Query<Entity, With<PauseMenuRoot>>,
+    controls_menu_query: Query<Entity, With<ControlsMenuRoot>>,
     controls_query: Query<&Interaction, (Changed<Interaction>, With<ControlsButton>)>,
-    mut controls_text_query: Query<&mut Node, With<ControlsText>>,
+    back_query: Query<&Interaction, (Changed<Interaction>, With<ControlsBackButton>)>,
     resume_query: Query<&Interaction, (Changed<Interaction>, With<ResumeButton>)>,
     save_query: Query<&Interaction, (Changed<Interaction>, With<PauseSaveButton>)>,
     save_quit_query: Query<&Interaction, (Changed<Interaction>, With<PauseSaveAndQuitButton>)>,
+    switch_mode_query: Query<&Interaction, (Changed<Interaction>, With<SwitchModeButton>)>,
+    mut mode_confirmation_query: Query<&mut Text, With<ModeConfirmationText>>,
 ) {
     for interaction in resume_query.iter() {
         if *interaction == Interaction::Pressed {
@@ -1017,11 +1185,42 @@ pub fn pause_menu_interaction_system(
 
     for interaction in controls_query.iter() {
         if *interaction == Interaction::Pressed {
-            for mut node in controls_text_query.iter_mut() {
-                node.display = match node.display {
-                    Display::None => Display::Flex,
-                    _ => Display::None,
-                };
+            for entity in pause_menu_query.iter() {
+                commands.entity(entity).despawn();
+            }
+            setup_controls_menu(commands);
+            return;
+        }
+    }
+
+    for interaction in back_query.iter() {
+        if *interaction == Interaction::Pressed {
+            for entity in controls_menu_query.iter() {
+                commands.entity(entity).despawn();
+            }
+            setup_pause_menu(commands);
+            return;
+        }
+    }
+
+    for interaction in switch_mode_query.iter() {
+        if *interaction == Interaction::Pressed {
+            *mode = match *mode {
+                GameMode::Free => {
+                    if let Ok(mut camera) = camera_query.single_mut() {
+                        let forward = camera.forward();
+                        camera.look_to(forward, Vec3::Y);
+                    }
+                    GameMode::Human
+                }
+                GameMode::Human => GameMode::Free,
+            };
+            let message = match *mode {
+                GameMode::Free => "Switched to Free Mode",
+                GameMode::Human => "Switched to Human Mode",
+            };
+            for mut text in mode_confirmation_query.iter_mut() {
+                text.0 = message.to_string();
             }
         }
     }

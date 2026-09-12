@@ -1,11 +1,12 @@
 use crate::types::{
-    ColorPickerState, CurrentWorld, EditPositionState, PlacedBlock, PlacementSettings,
+    ColorPickerState, CurrentWorld, EditPositionState, GameMode, PlacedBlock, PlacementSettings,
     SelectionHighlight,
 };
 use bevy::prelude::*;
 use bevy_egui::EguiContexts;
 
 const GRID_SIZE: f32 = 1.0;
+const FLOOR_HALF_SIZE: f32 = 100.0;
 
 pub fn setup_scene(
     mut commands: Commands,
@@ -14,7 +15,7 @@ pub fn setup_scene(
 ) {
     // Ground plane
     commands.spawn((
-        Mesh3d(meshes.add(Plane3d::default().mesh().size(30.0, 30.0))),
+        Mesh3d(meshes.add(Plane3d::default().mesh().size(200.0, 200.0))),
         MeshMaterial3d(materials.add(Color::srgb(0.2, 0.6, 0.2))),
         Transform::default(),
     ));
@@ -69,11 +70,15 @@ pub fn keyboard_shortcut_system(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut settings: ResMut<PlacementSettings>,
     color_picker: Res<ColorPickerState>,
-    mut blocks_query: Query<(&mut Transform, &mut PlacedBlock)>,
+    mode: Res<GameMode>,
+    mut transform_queries: ParamSet<(
+        Query<(&mut Transform, &mut PlacedBlock)>,
+        Query<&Transform, With<Camera3d>>,
+    )>,
     mut commands: Commands,
     highlight_query: Query<Entity, With<SelectionHighlight>>,
 ) {
-    if color_picker.is_open {
+    if color_picker.is_open || *mode == GameMode::Human {
         return;
     }
 
@@ -92,30 +97,36 @@ pub fn keyboard_shortcut_system(
         }
     }
 
+    let camera_query = transform_queries.p1();
+    let Ok(camera_transform) = camera_query.single() else {
+        return;
+    };
+    let camera_transform = *camera_transform;
     let mut rotation_changed = false;
+    let mut rotation_delta = Quat::IDENTITY;
     if keyboard.just_pressed(KeyCode::ArrowLeft) {
-        settings.rotation_y = wrap_angle(settings.rotation_y - 90.0);
+        rotation_delta = camera_relative_rotation(&camera_transform, -90.0, false);
         rotation_changed = true;
     }
     if keyboard.just_pressed(KeyCode::ArrowRight) {
-        settings.rotation_y = wrap_angle(settings.rotation_y + 90.0);
+        rotation_delta = camera_relative_rotation(&camera_transform, 90.0, false);
         rotation_changed = true;
     }
     if keyboard.just_pressed(KeyCode::ArrowUp) {
-        settings.rotation_x = wrap_angle(settings.rotation_x + 90.0);
+        rotation_delta = camera_relative_rotation(&camera_transform, 90.0, true);
         rotation_changed = true;
     }
     if keyboard.just_pressed(KeyCode::ArrowDown) {
-        settings.rotation_x = wrap_angle(settings.rotation_x - 90.0);
+        rotation_delta = camera_relative_rotation(&camera_transform, -90.0, true);
         rotation_changed = true;
     }
 
     if rotation_changed {
+        settings.rotation = rotation_delta * settings.rotation;
         if let Some(entity) = settings.editing_entity {
-            if let Ok((mut transform, mut block)) = blocks_query.get_mut(entity) {
-                block.rotation_x = settings.rotation_x;
-                block.rotation_y = settings.rotation_y;
-                transform.rotation = rotation_quat(settings.rotation_x, settings.rotation_y);
+            if let Ok((mut transform, mut block)) = transform_queries.p0().get_mut(entity) {
+                transform.rotation = rotation_delta * transform.rotation;
+                block.rotation = transform.rotation;
             } else {
                 settings.editing_entity = None;
             }
@@ -123,12 +134,13 @@ pub fn keyboard_shortcut_system(
     }
 }
 
-fn wrap_angle(angle: f32) -> f32 {
-    angle.rem_euclid(360.0)
-}
-
-fn rotation_quat(rotation_x: f32, rotation_y: f32) -> Quat {
-    Quat::from_rotation_y(rotation_y.to_radians()) * Quat::from_rotation_x(rotation_x.to_radians())
+fn camera_relative_rotation(camera: &Transform, degrees: f32, pitch: bool) -> Quat {
+    let local_rotation = if pitch {
+        Quat::from_rotation_x(degrees.to_radians())
+    } else {
+        Quat::from_rotation_y(degrees.to_radians())
+    };
+    camera.rotation * local_rotation * camera.rotation.inverse()
 }
 
 // Ray-AABB intersection returning (distance, surface_normal)
@@ -187,6 +199,7 @@ pub fn place_wall_system(
     mut settings: ResMut<PlacementSettings>,
     mut edit_position: ResMut<EditPositionState>,
     color_picker: Res<ColorPickerState>,
+    mode: Res<GameMode>,
     window_query: Query<&Window>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     button_interactions: Query<&Interaction, With<Button>>,
@@ -196,7 +209,7 @@ pub fn place_wall_system(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    if color_picker.is_open {
+    if color_picker.is_open || *mode == GameMode::Human {
         return;
     }
 
@@ -248,6 +261,9 @@ pub fn place_wall_system(
                     settings.editing_entity = Some(entity);
                     settings.rotation_x = rotation_x;
                     settings.rotation_y = rotation_y;
+                    if let Ok((_, selected_block)) = placed_blocks_query.get(entity) {
+                        settings.rotation = selected_block.rotation;
+                    }
                     edit_position.entity = Some(entity);
                     for highlight in selection_highlights.iter() {
                         commands.entity(highlight).despawn();
@@ -338,6 +354,11 @@ pub fn place_wall_system(
             if let Some(target) = closest_hit {
                 let block_center = match target {
                     HitTarget::Ground { hit_point, normal } => {
+                        if hit_point.x.abs() > FLOOR_HALF_SIZE
+                            || hit_point.z.abs() > FLOOR_HALF_SIZE
+                        {
+                            return;
+                        }
                         let mut center = hit_point + normal * (settings.size * 0.5);
                         center.x = (center.x / GRID_SIZE).round() * GRID_SIZE;
                         center.z = (center.z / GRID_SIZE).round() * GRID_SIZE;
@@ -364,13 +385,13 @@ pub fn place_wall_system(
                             settings.size.z,
                         ))),
                         MeshMaterial3d(materials.add(settings.color)),
-                        Transform::from_translation(block_center)
-                            .with_rotation(rotation_quat(settings.rotation_x, settings.rotation_y)),
+                        Transform::from_translation(block_center).with_rotation(settings.rotation),
                         PlacedBlock {
                             center: block_center,
                             size: settings.size,
                             rotation_x: settings.rotation_x,
                             rotation_y: settings.rotation_y,
+                            rotation: settings.rotation,
                         },
                     ))
                     .id();

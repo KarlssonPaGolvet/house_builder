@@ -1,10 +1,15 @@
+use crate::types::GameMode;
 use bevy::prelude::*;
 
 pub fn camera_movement_system(
     keyboard: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
+    mode: Res<GameMode>,
     mut camera_query: Query<&mut Transform, With<Camera3d>>,
 ) {
+    if *mode != GameMode::Free {
+        return;
+    }
     let Ok(mut transform) = camera_query.single_mut() else {
         return;
     };
@@ -23,7 +28,7 @@ pub fn camera_movement_system(
             yaw_change -= rotation_speed;
         }
         if yaw_change != 0.0 {
-            transform.rotate_y(yaw_change);
+            transform.rotate_local_y(yaw_change);
         }
         if keyboard.pressed(KeyCode::KeyW) {
             pitch_change += rotation_speed;
@@ -32,7 +37,7 @@ pub fn camera_movement_system(
             pitch_change -= rotation_speed;
         }
         if pitch_change != 0.0 {
-            transform.rotate_x(pitch_change);
+            transform.rotate_local_x(pitch_change);
         }
     }
     let mut cam_change = 0.0;
@@ -43,7 +48,7 @@ pub fn camera_movement_system(
         cam_change -= rotation_speed;
     }
     if cam_change != 0.0 {
-        transform.rotate_z(cam_change);
+        transform.rotate_local_z(cam_change);
     }
 
     let forward = transform.forward();

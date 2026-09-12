@@ -10,6 +10,23 @@ pub enum GameState {
     Paused,
 }
 
+#[derive(Resource, Clone, Copy, PartialEq, Eq)]
+pub enum GameMode {
+    Free,
+    Human,
+}
+
+impl Default for GameMode {
+    fn default() -> Self {
+        Self::Free
+    }
+}
+
+#[derive(Resource, Default)]
+pub struct HumanPhysics {
+    pub vertical_velocity: f32,
+}
+
 #[derive(Resource)]
 pub struct PlacementSettings {
     pub color: Color,
@@ -18,6 +35,7 @@ pub struct PlacementSettings {
     pub size_name: &'static str,
     pub rotation_x: f32,
     pub rotation_y: f32,
+    pub rotation: Quat,
     pub is_deleting: bool,
     pub editing_mode: bool,
     pub editing_entity: Option<Entity>,
@@ -32,6 +50,7 @@ impl Default for PlacementSettings {
             size_name: "Standard Wall (1x1x1)",
             rotation_x: 0.0,
             rotation_y: 0.0,
+            rotation: Quat::IDENTITY,
             is_deleting: false,
             editing_mode: false,
             editing_entity: None,
@@ -93,6 +112,7 @@ pub struct PlacedBlock {
     pub size: Vec3,
     pub rotation_x: f32,
     pub rotation_y: f32,
+    pub rotation: Quat,
 }
 
 #[derive(Component)]
@@ -109,6 +129,9 @@ pub struct EditCoordinatesButton;
 
 #[derive(Component)]
 pub struct CoordinateText;
+
+#[derive(Component)]
+pub struct PlayerDebugCoordinates;
 
 #[derive(Component)]
 pub struct StatusText;
@@ -150,7 +173,16 @@ pub struct PauseSaveAndQuitButton;
 pub struct ControlsButton;
 
 #[derive(Component)]
-pub struct ControlsText;
+pub struct ControlsMenuRoot;
+
+#[derive(Component)]
+pub struct ControlsBackButton;
+
+#[derive(Component)]
+pub struct SwitchModeButton;
+
+#[derive(Component)]
+pub struct ModeConfirmationText;
 
 #[derive(Component)]
 pub struct NewHouseInputText;

@@ -1,5 +1,6 @@
 mod building;
 mod camera;
+mod mechanics;
 mod save;
 mod types;
 mod ui;
@@ -14,15 +15,19 @@ use building::{
 };
 
 use camera::camera_movement_system;
+use mechanics::{
+    cursor_mode_system, human_mouse_look_system, human_movement_system, return_to_start_system,
+};
 
-use types::{CurrentWorld, GameState, PlacedBlock, PlacementSettings};
+use types::{CurrentWorld, GameMode, GameState, HumanPhysics, PlacedBlock, PlacementSettings};
 
 use ui::{
-    cleanup_game_hud, cleanup_main_menu, cleanup_new_house_menu, cleanup_pause_menu,
-    cleanup_saved_houses_menu, color_picker_system, main_menu_interaction_system,
-    new_house_input_system, pause_menu_interaction_system, saved_houses_interaction_system,
-    setup_main_menu, setup_new_house_menu, setup_pause_menu, setup_saved_houses_menu, setup_ui,
-    ui_interaction_system, update_status_text_system,
+    cleanup_controls_menu, cleanup_game_hud, cleanup_main_menu, cleanup_new_house_menu,
+    cleanup_pause_menu, cleanup_saved_houses_menu, color_picker_system,
+    main_menu_interaction_system, new_house_input_system, pause_menu_interaction_system,
+    saved_houses_interaction_system, setup_main_menu, setup_new_house_menu, setup_pause_menu,
+    setup_saved_houses_menu, setup_ui, ui_interaction_system,
+    update_player_debug_coordinates_system, update_status_text_system,
 };
 
 fn main() {
@@ -44,6 +49,8 @@ fn main() {
         .init_resource::<types::BlockMenuState>()
         .init_resource::<types::EditPositionState>()
         .init_resource::<types::CurrentWorld>()
+        .init_resource::<GameMode>()
+        .init_resource::<HumanPhysics>()
         .add_systems(Startup, setup_scene)
         .add_systems(OnEnter(GameState::MainMenu), setup_main_menu)
         .add_systems(OnExit(GameState::MainMenu), cleanup_main_menu)
@@ -63,6 +70,7 @@ fn main() {
                 cleanup_blocks,
                 cleanup_game_hud,
                 cleanup_pause_menu,
+                cleanup_controls_menu,
             ),
         )
         .add_systems(
@@ -81,9 +89,13 @@ fn main() {
             Update,
             (
                 camera_movement_system,
+                human_mouse_look_system,
+                human_movement_system,
+                return_to_start_system,
                 ui_interaction_system,
                 keyboard_shortcut_system,
                 update_status_text_system,
+                update_player_debug_coordinates_system,
                 place_wall_system,
                 animate_selection_system,
             )
@@ -98,6 +110,7 @@ fn main() {
             pause_menu_interaction_system.run_if(in_state(GameState::Paused)),
         )
         .add_systems(Update, toggle_pause_system)
+        .add_systems(Update, cursor_mode_system)
         .run();
 }
 
