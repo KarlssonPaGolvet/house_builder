@@ -1,20 +1,28 @@
+// ============================================================================
+// Human Mode Mechanics & Physics Systems
+// ============================================================================
+
 use bevy::input::mouse::AccumulatedMouseMotion;
 use bevy::prelude::*;
 use bevy::window::{CursorGrabMode, CursorOptions};
 
 use crate::types::{GameMode, GameState, HumanPhysics, PlacedBlock};
 
-const HUMAN_HEIGHT: f32 = 1.75;
-const HUMAN_HALF_WIDTH: f32 = 0.375;
-const STEP_HEIGHT: f32 = 0.51;
-const MIN_STEP_OFFSET: f32 = 0.051;
-const CONTACT_EPSILON: f32 = 0.002;
-const JUMP_HEIGHT: f32 = 3.0;
-const GRAVITY: f32 = 24.0;
-const WALK_SPEED: f32 = 5.0;
-const MOUSE_SENSITIVITY: f32 = 0.0025;
-const GROUND_HALF_SIZE: f32 = 100.0;
+// ----------------------------------------------------------------------------
+// Physics Constants
+// ----------------------------------------------------------------------------
+const HUMAN_HEIGHT: f32 = 1.75; // Total height of the player character (eyes/camera to feet)
+const HUMAN_HALF_WIDTH: f32 = 0.375; // Half-width bounding box size along the XZ collision plane
+const STEP_HEIGHT: f32 = 0.51; // Maximum step-up height the player can automatically climb
+const MIN_STEP_OFFSET: f32 = 0.051; // Minimum clearance required ahead to execute a step-up
+const CONTACT_EPSILON: f32 = 0.002; // Small offset buffer to avoid floating point precision clipping
+const JUMP_HEIGHT: f32 = 3.0; // Maximum height achieved during a single jump
+const GRAVITY: f32 = 24.0; // Downward gravitational acceleration force
+const WALK_SPEED: f32 = 5.0; // Horizontal walking speed (units per second)
+const MOUSE_SENSITIVITY: f32 = 0.0025; // Scaling factor converting raw mouse delta to look rotation
+const GROUND_HALF_SIZE: f32 = 100.0; // Boundary limit for world edge clamping
 
+/// Resets the human player back to the starting spawn configuration when pressing F1.
 pub fn return_to_start_system(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut physics: ResMut<HumanPhysics>,
@@ -26,15 +34,18 @@ pub fn return_to_start_system(
     let Ok(mut camera) = camera_query.single_mut() else {
         return;
     };
+    // Reposition camera to default vantage point looking at the world origin
     *camera = Transform::from_xyz(-8.0, 10.0, 12.0).looking_at(Vec3::ZERO, Vec3::Y);
     physics.vertical_velocity = 0.0;
 }
 
+/// Handles first-person mouse look rotation when active in Human mode.
 pub fn human_mouse_look_system(
     mouse_motion: Res<AccumulatedMouseMotion>,
     mode: Res<GameMode>,
     mut camera_query: Query<&mut Transform, With<Camera3d>>,
 ) {
+    // Only process mouse look if the player is currently in Human mode
     if *mode != GameMode::Human {
         return;
     }
@@ -47,10 +58,12 @@ pub fn human_mouse_look_system(
         return;
     }
 
+    // Yaw rotation applies around the global Y axis; Pitch applies locally on the X axis
     camera.rotate_y(-motion.x * MOUSE_SENSITIVITY);
     camera.rotate_local_x(-motion.y * MOUSE_SENSITIVITY);
 }
 
+/// Toggles cursor visibility and grab status depending on gameplay state and active mode.
 pub fn cursor_mode_system(
     mode: Res<GameMode>,
     state: Res<State<GameState>>,
@@ -68,6 +81,11 @@ pub fn cursor_mode_system(
     };
 }
 
+// ----------------------------------------------------------------------------
+// Main Movement & Collision Resolution System
+// ----------------------------------------------------------------------------
+
+/// Manages human player walking, gravity calculation, jumping physics, and step-climbing.
 pub fn human_movement_system(
     keyboard: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
@@ -84,11 +102,14 @@ pub fn human_movement_system(
         return;
     };
     let delta = time.delta_secs();
+
+    // Extract camera directions and flatten onto the horizontal XZ movement plane
     let forward = camera.forward();
     let right = camera.right();
     let horizontal_forward = Vec3::new(forward.x, 0.0, forward.z).normalize_or_zero();
     let horizontal_right = Vec3::new(right.x, 0.0, right.z).normalize_or_zero();
 
+    // Accumulate directional keyboard input (WASD)
     let mut direction = Vec3::ZERO;
     if keyboard.pressed(KeyCode::KeyW) {
         direction += horizontal_forward;
@@ -104,14 +125,19 @@ pub fn human_movement_system(
     }
     let direction = direction.normalize_or_zero();
     let movement = direction * WALK_SPEED * delta;
+
+    // Calculate current vertical standing metrics
     let mut feet_y = camera.translation.y - HUMAN_HEIGHT;
     let support = support_height(camera.translation, feet_y, &blocks);
     let grounded = physics.vertical_velocity.abs() < 0.01 && feet_y <= support + 0.05;
 
+    // Handle jump inputs if grounded
     let jumping = keyboard.just_pressed(KeyCode::Space) && grounded;
     if jumping {
         physics.vertical_velocity = (2.0 * GRAVITY * JUMP_HEIGHT).sqrt();
     }
+
+    // Update vertical position and velocity based on gravity
     let next_feet_y = if grounded && !jumping {
         physics.vertical_velocity = 0.0;
         feet_y
@@ -120,6 +146,7 @@ pub fn human_movement_system(
         feet_y + physics.vertical_velocity * delta
     };
 
+    // Separate horizontal movement axes to handle wall sliding and step-ups smoothly
     let mut candidate = camera.translation;
     for axis_movement in [
         Vec3::new(movement.x, 0.0, 0.0),
@@ -135,6 +162,7 @@ pub fn human_movement_system(
             });
         let can_move =
             !can_step && !intersects_swept(candidate, next, next_feet_y, HUMAN_HEIGHT, &blocks);
+
         if clear_to_step || can_move {
             candidate = next;
             if clear_to_step {
@@ -143,6 +171,7 @@ pub fn human_movement_system(
         }
     }
 
+    // Resolve landing conditions and enforce bounds limits
     if physics.vertical_velocity <= 0.0 {
         let landing = highest_support(candidate, feet_y, next_feet_y, &blocks);
         if next_feet_y <= landing {
@@ -155,6 +184,7 @@ pub fn human_movement_system(
         feet_y = next_feet_y;
     }
 
+    // Apply finalized transformations back to the camera with boundary clamps
     camera.translation = Vec3::new(candidate.x, feet_y + HUMAN_HEIGHT, candidate.z);
     camera.translation.x = camera.translation.x.clamp(
         -GROUND_HALF_SIZE + HUMAN_HALF_WIDTH,
@@ -166,6 +196,11 @@ pub fn human_movement_system(
     );
 }
 
+// ----------------------------------------------------------------------------
+// Collision & Step Detection Helper Functions
+// ----------------------------------------------------------------------------
+
+/// Computes the exact support surface height beneath the character.
 fn support_height(position: Vec3, feet_y: f32, blocks: &Query<&PlacedBlock>) -> f32 {
     let mut support: f32 = 0.0;
     for block in blocks.iter() {
@@ -180,6 +215,7 @@ fn support_height(position: Vec3, feet_y: f32, blocks: &Query<&PlacedBlock>) -> 
     support
 }
 
+/// Evaluates if a block ahead can be stepped onto as a staircase step.
 fn step_support(
     position: Vec3,
     feet_y: f32,
@@ -205,6 +241,7 @@ fn step_support(
     }
 }
 
+/// Checks if there is enough physical head clearance above a step to allow climbing.
 fn step_clear(
     position: Vec3,
     target_feet_y: f32,
@@ -246,6 +283,7 @@ fn step_clear(
     true
 }
 
+/// Finds the highest valid collision surface when falling or landing.
 fn highest_support(
     position: Vec3,
     current_feet_y: f32,
@@ -267,6 +305,7 @@ fn highest_support(
     support
 }
 
+/// Determines whether a static point position intersects with a block's volume.
 fn intersects_solid(
     position: Vec3,
     feet_y: f32,
@@ -287,10 +326,12 @@ fn intersects_solid(
     false
 }
 
+/// Calculates the oriented world half-extents of a rotated block.
 fn world_half_extents(block: &PlacedBlock) -> Vec3 {
     Mat3::from_quat(block.rotation).abs() * (block.size * 0.5)
 }
 
+/// Performs a swept-box raycast check along a movement path to prevent clipping through walls.
 fn intersects_swept(
     start: Vec3,
     end: Vec3,
@@ -310,6 +351,7 @@ fn intersects_swept(
     false
 }
 
+/// Checks for 2D horizontal overlap between the player bounding box and a block.
 fn overlaps_xz(position: Vec3, center: Vec3, size: Vec3) -> bool {
     position.x + HUMAN_HALF_WIDTH > center.x - size.x * 0.5
         && position.x - HUMAN_HALF_WIDTH < center.x + size.x * 0.5

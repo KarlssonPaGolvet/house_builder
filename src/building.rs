@@ -1,26 +1,37 @@
 use crate::types::{
-    ColorPickerState, CurrentWorld, EditPositionState, GameMode, PlacedBlock, PlacementSettings,
-    SelectionHighlight,
+    BlockMenuState, ColorPickerState, CurrentWorld, EditPositionState, GameMode, PlacedBlock,
+    PlacementSettings, SelectionHighlight,
 };
 use bevy::prelude::*;
 use bevy_egui::EguiContexts;
 
+// Building-related gameplay systems live here so the scene setup, block
+// placement, editing, deletion, and selection feedback share the same spatial
+// calculations.
 const GRID_SIZE: f32 = 1.0;
+// The visual ground plane spans -100..100 on both horizontal axes. Placement
+// uses the same limit so the player cannot create blocks on the invisible
+// mathematical continuation of the ground plane.
 const FLOOR_HALF_SIZE: f32 = 100.0;
 
+/// Creates the persistent environment shared by every saved world: ground,
+/// lighting, and the camera. Placed blocks are created separately when a world
+/// is loaded or when the player clicks to build.
 pub fn setup_scene(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    // Ground plane
+    // Keep the mesh size and FLOOR_HALF_SIZE in sync. The raycast can still
+    // intersect an infinite y=0 plane, so the placement system checks bounds.
     commands.spawn((
         Mesh3d(meshes.add(Plane3d::default().mesh().size(200.0, 200.0))),
         MeshMaterial3d(materials.add(Color::srgb(0.2, 0.6, 0.2))),
         Transform::default(),
     ));
 
-    // Light
+    // A single point light keeps the block colours readable without requiring
+    // each block to carry its own lighting setup.
     commands.spawn((
         PointLight {
             intensity: 2_500_000.0,
@@ -31,7 +42,7 @@ pub fn setup_scene(
         Transform::from_xyz(6.0, 12.0, 8.0),
     ));
 
-    // 3D Camera
+    // This is also the F1 reset transform and the initial Free Mode viewpoint.
     commands.spawn((
         Camera3d::default(),
         Transform::from_xyz(-8.0, 10.0, 12.0).looking_at(Vec3::ZERO, Vec3::Y),
@@ -45,7 +56,8 @@ pub fn load_current_world_system(
     mut materials: ResMut<Assets<StandardMaterial>>,
     existing_blocks: Query<Entity, With<PlacedBlock>>,
 ) {
-    // Clear any existing blocks first to prevent duplication on reload
+    // OnEnter(Playing) can happen after another world was active. Remove the
+    // old block entities before loading the selected save to avoid duplicates.
     for entity in existing_blocks.iter() {
         commands.entity(entity).despawn();
     }
@@ -66,27 +78,32 @@ pub fn cleanup_blocks(mut commands: Commands, query: Query<Entity, With<PlacedBl
     }
 }
 
+/// Handles keyboard-only build tools. Rotation is stored as a quaternion for
+/// rendering and collision, while rotation_x/rotation_y remain as readable
+/// angle values for the HUD and compatibility with older save data.
 pub fn keyboard_shortcut_system(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut settings: ResMut<PlacementSettings>,
     color_picker: Res<ColorPickerState>,
     mode: Res<GameMode>,
-    mut transform_queries: ParamSet<(
-        Query<(&mut Transform, &mut PlacedBlock)>,
-        Query<&Transform, With<Camera3d>>,
-    )>,
+    mut blocks_query: Query<(&mut Transform, &mut PlacedBlock)>,
     mut commands: Commands,
     highlight_query: Query<Entity, With<SelectionHighlight>>,
 ) {
+    // Human Mode is intentionally read-only: it must not respond to build,
+    // delete, edit, or rotation shortcuts. An open colour picker also owns
+    // keyboard input, so arrow keys must not rotate a block underneath it.
     if color_picker.is_open || *mode == GameMode::Human {
         return;
     }
 
-    // Toggle delete mode with 'P' (leaving 'R' completely untouched)
+    // P toggles deletion rather than placing a new block.
     if keyboard.just_pressed(KeyCode::KeyP) {
         settings.is_deleting = !settings.is_deleting;
     }
 
+    // B toggles edit-selection mode. The next world click selects a block and
+    // creates the pulsing outline; it does not create a new block.
     if keyboard.just_pressed(KeyCode::KeyB) {
         settings.editing_mode = !settings.editing_mode;
         settings.editing_entity = None;
@@ -97,34 +114,36 @@ pub fn keyboard_shortcut_system(
         }
     }
 
-    let camera_query = transform_queries.p1();
-    let Ok(camera_transform) = camera_query.single() else {
-        return;
-    };
-    let camera_transform = *camera_transform;
     let mut rotation_changed = false;
     let mut rotation_delta = Quat::IDENTITY;
+    // These deltas deliberately use world axes. The block orientation should
+    // be stable in the world even if the camera has been rotated or rolled.
     if keyboard.just_pressed(KeyCode::ArrowLeft) {
-        rotation_delta = camera_relative_rotation(&camera_transform, -90.0, false);
+        rotation_delta = Quat::from_rotation_y(-90.0_f32.to_radians());
+        settings.rotation_y = wrap_angle(settings.rotation_y - 90.0);
         rotation_changed = true;
     }
     if keyboard.just_pressed(KeyCode::ArrowRight) {
-        rotation_delta = camera_relative_rotation(&camera_transform, 90.0, false);
+        rotation_delta = Quat::from_rotation_y(90.0_f32.to_radians());
+        settings.rotation_y = wrap_angle(settings.rotation_y + 90.0);
         rotation_changed = true;
     }
     if keyboard.just_pressed(KeyCode::ArrowUp) {
-        rotation_delta = camera_relative_rotation(&camera_transform, 90.0, true);
+        rotation_delta = Quat::from_rotation_x(90.0_f32.to_radians());
+        settings.rotation_x = wrap_angle(settings.rotation_x + 90.0);
         rotation_changed = true;
     }
     if keyboard.just_pressed(KeyCode::ArrowDown) {
-        rotation_delta = camera_relative_rotation(&camera_transform, -90.0, true);
+        rotation_delta = Quat::from_rotation_x(-90.0_f32.to_radians());
+        settings.rotation_x = wrap_angle(settings.rotation_x - 90.0);
         rotation_changed = true;
     }
 
     if rotation_changed {
+        // Pre-multiplication applies the delta in world space.
         settings.rotation = rotation_delta * settings.rotation;
         if let Some(entity) = settings.editing_entity {
-            if let Ok((mut transform, mut block)) = transform_queries.p0().get_mut(entity) {
+            if let Ok((mut transform, mut block)) = blocks_query.get_mut(entity) {
                 transform.rotation = rotation_delta * transform.rotation;
                 block.rotation = transform.rotation;
             } else {
@@ -134,16 +153,25 @@ pub fn keyboard_shortcut_system(
     }
 }
 
-fn camera_relative_rotation(camera: &Transform, degrees: f32, pitch: bool) -> Quat {
-    let local_rotation = if pitch {
-        Quat::from_rotation_x(degrees.to_radians())
-    } else {
-        Quat::from_rotation_y(degrees.to_radians())
-    };
-    camera.rotation * local_rotation * camera.rotation.inverse()
+fn wrap_angle(angle: f32) -> f32 {
+    angle.rem_euclid(360.0)
 }
 
-// Ray-AABB intersection returning (distance, surface_normal)
+/// Returns the axis-aligned half-extents of a rotated block in world space.
+/// A rotated box is represented by an AABB for the lightweight raycast and
+/// collision code, so each local extent must be projected onto world axes.
+fn world_half_extents(block: &PlacedBlock) -> Vec3 {
+    world_half_extents_for(block.size, block.rotation)
+}
+
+fn world_half_extents_for(size: Vec3, rotation: Quat) -> Vec3 {
+    Mat3::from_quat(rotation).abs() * (size * 0.5)
+}
+
+/// Intersects a ray with an axis-aligned box.
+///
+/// The returned distance selects the closest hit and the normal identifies
+/// which face was hit, allowing a new block to be attached to that face.
 fn intersect_ray_box(
     ray_origin: Vec3,
     ray_dir: Vec3,
@@ -153,6 +181,8 @@ fn intersect_ray_box(
     let min = box_center - box_size * 0.5;
     let max = box_center + box_size * 0.5;
 
+    // Slab intersection: each axis contributes an entering and exiting t
+    // value; the ray hits the box only when all three intervals overlap.
     let t1 = (min.x - ray_origin.x) / ray_dir.x;
     let t2 = (max.x - ray_origin.x) / ray_dir.x;
     let t3 = (min.y - ray_origin.y) / ray_dir.y;
@@ -172,6 +202,8 @@ fn intersect_ray_box(
         return None;
     }
 
+    // Reconstruct the hit point to determine the face normal. The epsilon
+    // avoids missing a face because of floating-point rounding.
     let hit_point = ray_origin + ray_dir * t;
     let mut normal = Vec3::Y;
     let eps = 0.001;
@@ -199,6 +231,7 @@ pub fn place_wall_system(
     mut settings: ResMut<PlacementSettings>,
     mut edit_position: ResMut<EditPositionState>,
     color_picker: Res<ColorPickerState>,
+    block_menu: Res<BlockMenuState>,
     mode: Res<GameMode>,
     window_query: Query<&Window>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
@@ -209,7 +242,14 @@ pub fn place_wall_system(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    if color_picker.is_open || *mode == GameMode::Human {
+    // All overlays and Human Mode are modal. Returning before reading the
+    // mouse prevents clicks on menus, their surrounding area, or the human
+    // view from changing the world.
+    if color_picker.is_open
+        || block_menu.is_open
+        || edit_position.is_open
+        || *mode == GameMode::Human
+    {
         return;
     }
 
@@ -219,6 +259,8 @@ pub fn place_wall_system(
         }
     }
 
+    // Placement is click-driven; holding the button must not place blocks
+    // every frame.
     if !mouse_button.just_pressed(MouseButton::Left) {
         return;
     }
@@ -242,13 +284,19 @@ pub fn place_wall_system(
             let ray_dir: Vec3 = ray.direction.into();
 
             if settings.editing_mode {
+                // Find the closest visible block under the cursor. The raycast
+                // uses world-space extents so rotated/wide blocks are selectable
+                // across their complete visible footprint.
                 let mut closest_block: Option<(f32, Entity, f32, f32, Vec3)> = None;
                 let mut min_t = f32::MAX;
 
                 for (entity, block) in placed_blocks_query.iter() {
-                    if let Some((t, _)) =
-                        intersect_ray_box(ray_origin, ray_dir, block.center, block.size)
-                    {
+                    if let Some((t, _)) = intersect_ray_box(
+                        ray_origin,
+                        ray_dir,
+                        block.center,
+                        world_half_extents(block) * 2.0,
+                    ) {
                         if t > 0.0 && t < min_t {
                             min_t = t;
                             closest_block =
@@ -285,13 +333,18 @@ pub fn place_wall_system(
             }
 
             if settings.is_deleting {
+                // Delete mode uses the same closest-hit rule as edit mode, but
+                // removes the entity instead of selecting it.
                 let mut closest_block: Option<(f32, Entity)> = None;
                 let mut min_t = f32::MAX;
 
                 for (entity, block) in placed_blocks_query.iter() {
-                    if let Some((t, _)) =
-                        intersect_ray_box(ray_origin, ray_dir, block.center, block.size)
-                    {
+                    if let Some((t, _)) = intersect_ray_box(
+                        ray_origin,
+                        ray_dir,
+                        block.center,
+                        world_half_extents(block) * 2.0,
+                    ) {
                         if t > 0.0 && t < min_t {
                             min_t = t;
                             closest_block = Some((t, entity));
@@ -305,6 +358,9 @@ pub fn place_wall_system(
                 return;
             }
 
+            // Normal build mode first finds either the ground or the closest
+            // existing block. Existing blocks take precedence when they are
+            // closer than the ground intersection.
             enum HitTarget {
                 Ground {
                     hit_point: Vec3,
@@ -321,7 +377,7 @@ pub fn place_wall_system(
             let mut closest_hit: Option<HitTarget> = None;
             let mut min_t = f32::MAX;
 
-            // 1. Check ground plane intersection (y = 0)
+            // 1. Check the mathematical ground plane (y = 0).
             if ray_dir.y < 0.0 {
                 let t_ground = -ray_origin.y / ray_dir.y;
                 if t_ground > 0.0 {
@@ -333,33 +389,41 @@ pub fn place_wall_system(
                 }
             }
 
-            // 2. Check existing placed blocks
+            // 2. Check existing blocks using their world-space AABBs.
             for (_, block) in placed_blocks_query.iter() {
-                if let Some((t, normal)) =
-                    intersect_ray_box(ray_origin, ray_dir, block.center, block.size)
-                {
+                if let Some((t, normal)) = intersect_ray_box(
+                    ray_origin,
+                    ray_dir,
+                    block.center,
+                    world_half_extents(block) * 2.0,
+                ) {
                     if t > 0.0 && t < min_t {
                         min_t = t;
                         closest_hit = Some(HitTarget::Block {
                             _t: t,
                             normal,
                             center: block.center,
-                            size: block.size,
+                            size: world_half_extents(block) * 2.0,
                         });
                     }
                 }
             }
 
-            // 3. Compute final block center based on what was hit
+            // 3. Offset the new block by both boxes' world half-extents, then
+            // snap ground placement to the global grid.
             if let Some(target) = closest_hit {
                 let block_center = match target {
                     HitTarget::Ground { hit_point, normal } => {
+                        // The ray can hit the infinite plane outside the mesh;
+                        // reject that case before spawning an entity.
                         if hit_point.x.abs() > FLOOR_HALF_SIZE
                             || hit_point.z.abs() > FLOOR_HALF_SIZE
                         {
                             return;
                         }
-                        let mut center = hit_point + normal * (settings.size * 0.5);
+                        let new_half_extents =
+                            world_half_extents_for(settings.size, settings.rotation);
+                        let mut center = hit_point + normal * new_half_extents;
                         center.x = (center.x / GRID_SIZE).round() * GRID_SIZE;
                         center.z = (center.z / GRID_SIZE).round() * GRID_SIZE;
                         center
@@ -373,10 +437,15 @@ pub fn place_wall_system(
                             HitTarget::Block { center, .. } => center,
                             _ => unreachable!(),
                         };
-                        hit_center + normal * ((hit_size + settings.size) * 0.5)
+                        let hit_half_extents = hit_size * 0.5;
+                        let new_half_extents =
+                            world_half_extents_for(settings.size, settings.rotation);
+                        hit_center + normal * (hit_half_extents + new_half_extents)
                     }
                 };
 
+                // The ECS entity becomes the active coordinate target so the
+                // HUD Edit button can immediately move the new block.
                 let placed_entity = commands
                     .spawn((
                         Mesh3d(meshes.add(Cuboid::new(
@@ -408,6 +477,9 @@ fn spawn_selection_highlight(
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
 ) {
+    // The highlight is made from twelve thin cuboids, one for each edge of
+    // the selected block. Parenting them to the block makes the outline follow
+    // its position and world rotation automatically.
     let thickness = 0.035;
     let x_mesh = meshes.add(Cuboid::new(thickness, size.y + thickness, thickness));
     let y_mesh = meshes.add(Cuboid::new(size.x + thickness, thickness, thickness));
@@ -421,6 +493,7 @@ fn spawn_selection_highlight(
     let offset = thickness * 0.5;
 
     commands.entity(entity).with_children(|parent| {
+        // Four vertical edges.
         for x in [-1.0, 1.0] {
             for z in [-1.0, 1.0] {
                 parent.spawn((
@@ -435,6 +508,7 @@ fn spawn_selection_highlight(
                 ));
             }
         }
+        // Four edges along the local X direction.
         for y in [-1.0, 1.0] {
             for z in [-1.0, 1.0] {
                 parent.spawn((
@@ -449,6 +523,7 @@ fn spawn_selection_highlight(
                 ));
             }
         }
+        // Four edges along the local Z direction.
         for x in [-1.0, 1.0] {
             for y in [-1.0, 1.0] {
                 parent.spawn((
@@ -472,10 +547,13 @@ pub fn animate_selection_system(
     highlights: Query<&MeshMaterial3d<StandardMaterial>, With<SelectionHighlight>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
+    // No selected block means there is no reason to touch highlight materials.
     if !settings.editing_mode || settings.editing_entity.is_none() {
         return;
     }
 
+    // A sine wave gives a soft breathing effect rather than a distracting
+    // binary blink.
     let pulse = (time.elapsed_secs() * 3.0).sin() * 0.5 + 0.5;
     let color = Color::srgb(
         0.15 + pulse * 0.55,
