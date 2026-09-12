@@ -2,29 +2,16 @@ use bevy::app::AppExit;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::prelude::*;
 use bevy::text::FontSize;
+use bevy_egui::{EguiContexts, egui};
 
 use crate::save;
-use crate::types::{
-    ColorButton,
-    CurrentWorld,
-    GameState,
-    MainMenuNewHouseButton,
-    MainMenuQuitButton,
-    MainMenuRoot,
-    MainMenuSavedHousesButton,
-    NewHouseInputText,
-    NewHouseRoot,
-    PauseMenuRoot,
-    PauseSaveAndQuitButton,
-    PauseSaveButton,
-    PlacementSettings,
-    ResumeButton,
-    SavedHousesRoot,
-    SizeButton,
-    StatusText,
-    TextInputBuffer,
-};
 use crate::types::PlacedBlock;
+use crate::types::{
+    ColorInputBuffer, ColorPickerState, ColourButton, ControlsButton, ControlsText, CurrentWorld,
+    GameState, MainMenuNewHouseButton, MainMenuQuitButton, MainMenuRoot, MainMenuSavedHousesButton,
+    NewHouseInputText, NewHouseRoot, PauseMenuRoot, PauseSaveAndQuitButton, PauseSaveButton,
+    PlacementSettings, ResumeButton, SavedHousesRoot, SizeButton, StatusText, TextInputBuffer,
+};
 
 pub fn setup_ui(mut commands: Commands) {
     commands
@@ -62,7 +49,7 @@ pub fn setup_ui(mut commands: Commands) {
             ));
 
             parent.spawn((
-                Text::new("Select Color (1-4):"),
+                Text::new("Choose Block Color:"),
                 TextFont {
                     font_size: FontSize::Px(14.0),
                     ..default()
@@ -70,49 +57,7 @@ pub fn setup_ui(mut commands: Commands) {
                 TextColor(Color::WHITE),
             ));
 
-            parent
-                .spawn(Node {
-                    flex_direction: FlexDirection::Row,
-                    column_gap: Val::Px(6.0),
-                    ..default()
-                })
-                .with_children(|row| {
-                    spawn_button(
-                        row,
-                        "Wood",
-                        ColorButton(
-                            Color::srgb(0.8, 0.7, 0.6),
-                            "Wood / Beige",
-                        ),
-                    );
-
-                    spawn_button(
-                        row,
-                        "Brick",
-                        ColorButton(
-                            Color::srgb(0.7, 0.2, 0.2),
-                            "Red Brick",
-                        ),
-                    );
-
-                    spawn_button(
-                        row,
-                        "Stone",
-                        ColorButton(
-                            Color::srgb(0.5, 0.5, 0.5),
-                            "Gray Stone",
-                        ),
-                    );
-
-                    spawn_button(
-                        row,
-                        "Blue",
-                        ColorButton(
-                            Color::srgb(0.2, 0.5, 0.8),
-                            "Blue Roof",
-                        ),
-                    );
-                });
+            spawn_compact_button(parent, "Colour", ColourButton);
 
             parent.spawn((
                 Text::new("Select Size (Z/X/C):"),
@@ -133,65 +78,34 @@ pub fn setup_ui(mut commands: Commands) {
                     spawn_button(
                         row,
                         "1x1 Wall",
-                        SizeButton(
-                            Vec3::new(1.0, 1.0, 1.0),
-                            "Standard Wall (1x1x1)",
-                        ),
+                        SizeButton(Vec3::new(1.0, 1.0, 1.0), "Standard Wall (1x1x1)"),
                     );
 
                     spawn_button(
                         row,
                         "Tall 1x2",
-                        SizeButton(
-                            Vec3::new(1.0, 2.0, 1.0),
-                            "Tall Wall (1x2x1)",
-                        ),
+                        SizeButton(Vec3::new(1.0, 2.0, 1.0), "Tall Wall (1x2x1)"),
                     );
 
                     spawn_button(
                         row,
                         "Wide 2x1",
-                        SizeButton(
-                            Vec3::new(2.0, 1.0, 1.0),
-                            "Wide Wall (2x1x1)",
-                        ),
+                        SizeButton(Vec3::new(2.0, 1.0, 1.0), "Wide Wall (2x1x1)"),
                     );
                 });
-
-            parent.spawn((
-                Text::new(
-                    "Delete: P | Rotate: R | Move: WASD | Elevation: Q/E | Pause: Esc",
-                ),
-                TextFont {
-                    font_size: FontSize::Px(12.0),
-                    ..default()
-                },
-                TextColor(Color::srgb(0.7, 0.7, 0.7)),
-            ));
         });
 }
 
-fn spawn_button<C: Component>(
-    parent: &mut ChildSpawnerCommands,
-    label: &str,
-    marker: C,
-) {
+fn spawn_button<C: Component>(parent: &mut ChildSpawnerCommands, label: &str, marker: C) {
     parent
         .spawn((
             Button,
             Node {
-                padding: UiRect::axes(
-                    Val::Px(10.0),
-                    Val::Px(6.0),
-                ),
+                padding: UiRect::axes(Val::Px(10.0), Val::Px(6.0)),
                 border: UiRect::all(Val::Px(1.0)),
                 ..default()
             },
-            BackgroundColor(Color::srgb(
-                0.25,
-                0.25,
-                0.25,
-            )),
+            BackgroundColor(Color::srgb(0.25, 0.25, 0.25)),
             BorderColor::all(Color::WHITE),
             marker,
         ))
@@ -207,11 +121,32 @@ fn spawn_button<C: Component>(
         });
 }
 
-fn spawn_menu_button<C: Component>(
-    parent: &mut ChildSpawnerCommands,
-    label: &str,
-    marker: C,
-) {
+fn spawn_compact_button<C: Component>(parent: &mut ChildSpawnerCommands, label: &str, marker: C) {
+    parent
+        .spawn((
+            Button,
+            Node {
+                padding: UiRect::axes(Val::Px(6.0), Val::Px(3.0)),
+                border: UiRect::all(Val::Px(1.0)),
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.25, 0.25, 0.25)),
+            BorderColor::all(Color::WHITE),
+            marker,
+        ))
+        .with_children(|btn| {
+            btn.spawn((
+                Text::new(label),
+                TextFont {
+                    font_size: FontSize::Px(11.0),
+                    ..default()
+                },
+                TextColor(Color::WHITE),
+            ));
+        });
+}
+
+fn spawn_menu_button<C: Component>(parent: &mut ChildSpawnerCommands, label: &str, marker: C) {
     parent
         .spawn((
             Button,
@@ -241,19 +176,13 @@ fn spawn_menu_button<C: Component>(
 
 pub fn ui_interaction_system(
     mut settings: ResMut<PlacementSettings>,
-    color_buttons: Query<
-        (&Interaction, &ColorButton),
-        (Changed<Interaction>, With<Button>),
-    >,
-    size_buttons: Query<
-        (&Interaction, &SizeButton),
-        (Changed<Interaction>, With<Button>),
-    >,
+    mut picker: ResMut<ColorPickerState>,
+    colour_buttons: Query<&Interaction, (Changed<Interaction>, With<ColourButton>)>,
+    size_buttons: Query<(&Interaction, &SizeButton), (Changed<Interaction>, With<Button>)>,
 ) {
-    for (interaction, color_btn) in color_buttons.iter() {
+    for interaction in colour_buttons.iter() {
         if *interaction == Interaction::Pressed {
-            settings.color = color_btn.0;
-            settings.color_name = color_btn.1;
+            picker.is_open = true;
         }
     }
 
@@ -265,19 +194,147 @@ pub fn ui_interaction_system(
     }
 }
 
+pub fn color_picker_system(
+    mut contexts: EguiContexts,
+    mut settings: ResMut<PlacementSettings>,
+    mut color_input: ResMut<ColorInputBuffer>,
+    mut picker: ResMut<ColorPickerState>,
+) {
+    if !picker.is_open {
+        return;
+    }
+
+    let Ok(ctx) = contexts.ctx_mut() else {
+        return;
+    };
+    let srgba = settings.color.to_srgba();
+    let mut color = egui::Color32::from_rgba_unmultiplied(
+        (srgba.red.clamp(0.0, 1.0) * 255.0) as u8,
+        (srgba.green.clamp(0.0, 1.0) * 255.0) as u8,
+        (srgba.blue.clamp(0.0, 1.0) * 255.0) as u8,
+        (srgba.alpha.clamp(0.0, 1.0) * 255.0) as u8,
+    );
+    let mut hex = color_input.text.clone();
+
+    let mut is_open = picker.is_open;
+    egui::Window::new("Block Colour")
+        .default_width(220.0)
+        .open(&mut is_open)
+        .show(ctx, |ui| {
+            ui.label("Color wheel");
+            if egui::color_picker::color_edit_button_srgba(
+                ui,
+                &mut color,
+                egui::color_picker::Alpha::Opaque,
+            )
+            .changed()
+            {
+                let [red, green, blue, _] = color.to_array();
+                settings.color = Color::srgba(
+                    red as f32 / 255.0,
+                    green as f32 / 255.0,
+                    blue as f32 / 255.0,
+                    1.0,
+                );
+                settings.color_name = format!("#{red:02X}{green:02X}{blue:02X}");
+                color_input.text = settings.color_name.clone();
+                add_color_to_history(&mut picker.history, &settings.color_name);
+            }
+
+            ui.label("Hexadecimal");
+            if ui.text_edit_singleline(&mut hex).changed() {
+                color_input.text = hex.clone();
+                if let Some(parsed) = parse_hex_color(&hex) {
+                    settings.color = parsed;
+                    settings.color_name = normalize_hex(&hex);
+                    color_input.text = settings.color_name.clone();
+                    add_color_to_history(&mut picker.history, &settings.color_name);
+                }
+            }
+
+            if ui.button("History").clicked() {
+                picker.show_history = !picker.show_history;
+            }
+
+            if picker.show_history {
+                ui.separator();
+                ui.label("Recent colours");
+                for history_color in picker.history.clone() {
+                    ui.horizontal(|ui| {
+                        if let Some(parsed) = parse_hex_color(&history_color) {
+                            let srgba = parsed.to_srgba();
+                            let swatch = egui::Color32::from_rgba_unmultiplied(
+                                (srgba.red * 255.0) as u8,
+                                (srgba.green * 255.0) as u8,
+                                (srgba.blue * 255.0) as u8,
+                                (srgba.alpha * 255.0) as u8,
+                            );
+                            let (rect, _) = ui
+                                .allocate_exact_size(egui::Vec2::splat(14.0), egui::Sense::hover());
+                            ui.painter().circle_filled(rect.center(), 6.0, swatch);
+                        }
+
+                        if ui.button(&history_color).clicked() {
+                            if let Some(parsed) = parse_hex_color(&history_color) {
+                                settings.color = parsed;
+                                settings.color_name = history_color.clone();
+                                color_input.text = history_color.clone();
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+    picker.is_open = is_open;
+}
+
+fn add_color_to_history(history: &mut Vec<String>, color: &str) {
+    history.retain(|entry| entry != color);
+    history.insert(0, color.to_string());
+    history.truncate(15);
+}
+
+fn parse_hex_color(value: &str) -> Option<Color> {
+    let trimmed = value.trim();
+    let value = trimmed.strip_prefix('#').unwrap_or(trimmed);
+    if value.len() != 6 && value.len() != 8 {
+        return None;
+    }
+    let red = u8::from_str_radix(&value[0..2], 16).ok()?;
+    let green = u8::from_str_radix(&value[2..4], 16).ok()?;
+    let blue = u8::from_str_radix(&value[4..6], 16).ok()?;
+    let alpha = if value.len() == 8 {
+        u8::from_str_radix(&value[6..8], 16).ok()?
+    } else {
+        255
+    };
+    Some(Color::srgba(
+        red as f32 / 255.0,
+        green as f32 / 255.0,
+        blue as f32 / 255.0,
+        alpha as f32 / 255.0,
+    ))
+}
+
+fn normalize_hex(value: &str) -> String {
+    format!("#{}", value.trim().trim_start_matches('#').to_uppercase())
+}
+
 pub fn update_status_text_system(
     settings: Res<PlacementSettings>,
     mut text_query: Query<&mut Text, With<StatusText>>,
 ) {
     if settings.is_changed() {
         if let Ok(mut text) = text_query.single_mut() {
-            let mode_str = if settings.is_deleting { "DELETE" } else { "BUILD" };
+            let mode_str = if settings.is_deleting {
+                "DELETE"
+            } else {
+                "BUILD"
+            };
             text.0 = format!(
                 "Mode: {}\nColor: {}\nSize: {}\nRotation: {}°",
-                mode_str,
-                settings.color_name,
-                settings.size_name,
-                settings.rotation_angle as i32
+                mode_str, settings.color_name, settings.size_name, settings.rotation_angle as i32
             );
         }
     }
@@ -315,29 +372,27 @@ pub fn setup_main_menu(mut commands: Commands) {
         });
 }
 
-pub fn cleanup_main_menu(
-    mut commands: Commands,
-    query: Query<Entity, With<MainMenuRoot>>,
-) {
+pub fn cleanup_main_menu(mut commands: Commands, query: Query<Entity, With<MainMenuRoot>>) {
     for entity in query.iter() {
         commands.entity(entity).despawn();
     }
 }
 
-pub fn cleanup_game_hud(
-    mut commands: Commands,
-    query: Query<Entity, With<GameHudRoot>>,
-) {
+pub fn cleanup_game_hud(mut commands: Commands, query: Query<Entity, With<GameHudRoot>>) {
     for entity in query.iter() {
         commands.entity(entity).despawn();
     }
 }
 
-#[derive(Component)] pub struct BackButton;
-#[derive(Component)] pub struct SaveHouseListItem(pub String);
-#[derive(Component)] pub struct DeleteSaveButton(pub String);
+#[derive(Component)]
+pub struct BackButton;
+#[derive(Component)]
+pub struct SaveHouseListItem(pub String);
+#[derive(Component)]
+pub struct DeleteSaveButton(pub String);
 
-#[derive(Component)] pub struct GameHudRoot;
+#[derive(Component)]
+pub struct GameHudRoot;
 
 pub fn setup_saved_houses_menu(mut commands: Commands) {
     let saves = save::list_saved_houses();
@@ -360,14 +415,20 @@ pub fn setup_saved_houses_menu(mut commands: Commands) {
         .with_children(|parent| {
             parent.spawn((
                 Text::new("Saved Houses"),
-                TextFont { font_size: FontSize::Px(28.0), ..default() },
+                TextFont {
+                    font_size: FontSize::Px(28.0),
+                    ..default()
+                },
                 TextColor(Color::WHITE),
             ));
 
             if saves.is_empty() {
                 parent.spawn((
                     Text::new("No saved houses found."),
-                    TextFont { font_size: FontSize::Px(16.0), ..default() },
+                    TextFont {
+                        font_size: FontSize::Px(16.0),
+                        ..default()
+                    },
                     TextColor(Color::srgb(0.6, 0.6, 0.6)),
                 ));
             } else {
@@ -380,8 +441,16 @@ pub fn setup_saved_houses_menu(mut commands: Commands) {
                             ..default()
                         })
                         .with_children(|row| {
-                            spawn_menu_button(row, &save_name, SaveHouseListItem(save_name.clone()));
-                            spawn_menu_button(row, "Delete", DeleteSaveButton(save_name.to_string()));
+                            spawn_menu_button(
+                                row,
+                                &save_name,
+                                SaveHouseListItem(save_name.clone()),
+                            );
+                            spawn_menu_button(
+                                row,
+                                "Delete",
+                                DeleteSaveButton(save_name.to_string()),
+                            );
                         });
                 }
             }
@@ -418,29 +487,35 @@ pub fn setup_new_house_menu(mut commands: Commands) {
         .with_children(|parent| {
             parent.spawn((
                 Text::new("Enter New World Name:"),
-                TextFont { font_size: FontSize::Px(20.0), ..default() },
+                TextFont {
+                    font_size: FontSize::Px(20.0),
+                    ..default()
+                },
                 TextColor(Color::WHITE),
             ));
 
             parent.spawn((
                 Text::new("_"),
-                TextFont { font_size: FontSize::Px(18.0), ..default() },
+                TextFont {
+                    font_size: FontSize::Px(18.0),
+                    ..default()
+                },
                 TextColor(Color::srgb(0.9, 0.9, 0.4)),
                 NewHouseInputText,
             ));
 
             parent.spawn((
                 Text::new("Type name & press Enter to confirm. Esc to go back."),
-                TextFont { font_size: FontSize::Px(12.0), ..default() },
+                TextFont {
+                    font_size: FontSize::Px(12.0),
+                    ..default()
+                },
                 TextColor(Color::srgb(0.6, 0.6, 0.6)),
             ));
         });
 }
 
-pub fn cleanup_new_house_menu(
-    mut commands: Commands,
-    query: Query<Entity, With<NewHouseRoot>>,
-) {
+pub fn cleanup_new_house_menu(mut commands: Commands, query: Query<Entity, With<NewHouseRoot>>) {
     for entity in query.iter() {
         commands.entity(entity).despawn();
     }
@@ -562,7 +637,11 @@ pub fn new_house_input_system(
     }
 
     if let Ok(mut text) = text_query.single_mut() {
-        text.0 = if text_input.text.is_empty() { "_".to_string() } else { format!("{}_", text_input.text) };
+        text.0 = if text_input.text.is_empty() {
+            "_".to_string()
+        } else {
+            format!("{}_", text_input.text)
+        };
     }
 }
 
@@ -572,19 +651,14 @@ pub fn setup_pause_menu(mut commands: Commands) {
             Node {
                 position_type: PositionType::Absolute,
                 width: Val::Percent(100.0),
-                height:Val::Percent(100.0),
+                height: Val::Percent(100.0),
                 flex_direction: FlexDirection::Column,
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 row_gap: Val::Px(15.0),
                 ..default()
             },
-            BackgroundColor(Color::srgba(
-                0.0,
-                0.0,
-                0.0,
-                0.75,
-            )),
+            BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.75)),
             PauseMenuRoot,
         ))
         .with_children(|parent| {
@@ -608,11 +682,7 @@ pub fn setup_pause_menu(mut commands: Commands) {
                         border: UiRect::all(Val::Px(1.0)),
                         ..default()
                     },
-                    BackgroundColor(Color::srgb(
-                        0.2,
-                        0.6,
-                        0.2,
-                    )),
+                    BackgroundColor(Color::srgb(0.2, 0.6, 0.2)),
                     BorderColor::all(Color::WHITE),
                     ResumeButton,
                 ))
@@ -626,6 +696,48 @@ pub fn setup_pause_menu(mut commands: Commands) {
                         TextColor(Color::WHITE),
                     ));
                 });
+
+            parent
+                .spawn((
+                    Button,
+                    Node {
+                        width: Val::Px(180.0),
+                        height: Val::Px(45.0),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        border: UiRect::all(Val::Px(1.0)),
+                        ..default()
+                    },
+                    BackgroundColor(Color::srgb(0.25, 0.25, 0.25)),
+                    BorderColor::all(Color::WHITE),
+                    ControlsButton,
+                ))
+                .with_children(|btn| {
+                    btn.spawn((
+                        Text::new("Controls"),
+                        TextFont {
+                            font_size: FontSize::Px(16.0),
+                            ..default()
+                        },
+                        TextColor(Color::WHITE),
+                    ));
+                });
+
+            parent.spawn((
+                Text::new(
+                    "Move: WASD\nElevation: Space / Shift\nRotate view: Hold R + WASD\nSelect colour: Colour button\nDelete block: P\nChange size: Z / X / C\nPause: Esc",
+                ),
+                TextFont {
+                    font_size: FontSize::Px(14.0),
+                    ..default()
+                },
+                TextColor(Color::WHITE),
+                Node {
+                    display: Display::None,
+                    ..default()
+                },
+                ControlsText,
+            ));
 
             parent
                 .spawn((
@@ -664,11 +776,7 @@ pub fn setup_pause_menu(mut commands: Commands) {
                         border: UiRect::all(Val::Px(1.0)),
                         ..default()
                     },
-                    BackgroundColor(Color::srgb(
-                        0.7,
-                        0.2,
-                        0.2,
-                    )),
+                    BackgroundColor(Color::srgb(0.7, 0.2, 0.2)),
                     BorderColor::all(Color::WHITE),
                     PauseSaveAndQuitButton,
                 ))
@@ -685,10 +793,7 @@ pub fn setup_pause_menu(mut commands: Commands) {
         });
 }
 
-pub fn cleanup_pause_menu(
-    mut commands: Commands,
-    query: Query<Entity, With<PauseMenuRoot>>,
-) {
+pub fn cleanup_pause_menu(mut commands: Commands, query: Query<Entity, With<PauseMenuRoot>>) {
     for entity in query.iter() {
         commands.entity(entity).despawn();
     }
@@ -701,22 +806,26 @@ pub fn pause_menu_interaction_system(
     blocks_query: Query<(&PlacedBlock, &MeshMaterial3d<StandardMaterial>), With<PlacedBlock>>,
     materials: Res<Assets<StandardMaterial>>,
     pause_menu_query: Query<Entity, With<PauseMenuRoot>>,
-    resume_query: Query<
-        &Interaction,
-        (Changed<Interaction>, With<ResumeButton>),
-    >,
-    save_query: Query<
-        &Interaction,
-        (Changed<Interaction>, With<PauseSaveButton>),
-    >,
-    save_quit_query: Query<
-        &Interaction,
-        (Changed<Interaction>, With<PauseSaveAndQuitButton>),
-    >,
+    controls_query: Query<&Interaction, (Changed<Interaction>, With<ControlsButton>)>,
+    mut controls_text_query: Query<&mut Node, With<ControlsText>>,
+    resume_query: Query<&Interaction, (Changed<Interaction>, With<ResumeButton>)>,
+    save_query: Query<&Interaction, (Changed<Interaction>, With<PauseSaveButton>)>,
+    save_quit_query: Query<&Interaction, (Changed<Interaction>, With<PauseSaveAndQuitButton>)>,
 ) {
     for interaction in resume_query.iter() {
         if *interaction == Interaction::Pressed {
             next_state.set(GameState::Playing);
+        }
+    }
+
+    for interaction in controls_query.iter() {
+        if *interaction == Interaction::Pressed {
+            for mut node in controls_text_query.iter_mut() {
+                node.display = match node.display {
+                    Display::None => Display::Flex,
+                    _ => Display::None,
+                };
+            }
         }
     }
 

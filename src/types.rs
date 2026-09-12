@@ -13,7 +13,7 @@ pub enum GameState {
 #[derive(Resource)]
 pub struct PlacementSettings {
     pub color: Color,
-    pub color_name: &'static str,
+    pub color_name: String,
     pub size: Vec3,
     pub size_name: &'static str,
     pub rotation_angle: f32, // 0.0, 90.0, 180.0, 270.0
@@ -24,7 +24,7 @@ impl Default for PlacementSettings {
     fn default() -> Self {
         Self {
             color: Color::srgb(0.8, 0.7, 0.6),
-            color_name: "Wood / Beige",
+            color_name: "#CCB399".to_string(),
             size: Vec3::new(1.0, 1.0, 1.0),
             size_name: "Standard Wall (1x1x1)",
             rotation_angle: 0.0,
@@ -43,6 +43,26 @@ pub struct TextInputBuffer {
     pub text: String,
 }
 
+#[derive(Resource)]
+pub struct ColorInputBuffer {
+    pub text: String,
+}
+
+impl Default for ColorInputBuffer {
+    fn default() -> Self {
+        Self {
+            text: "#CCB399".to_string(),
+        }
+    }
+}
+
+#[derive(Resource, Default)]
+pub struct ColorPickerState {
+    pub is_open: bool,
+    pub show_history: bool,
+    pub history: Vec<String>,
+}
+
 #[derive(Component)]
 pub struct PlacedBlock {
     pub center: Vec3,
@@ -51,7 +71,7 @@ pub struct PlacedBlock {
 }
 
 #[derive(Component)]
-pub struct ColorButton(pub Color, pub &'static str);
+pub struct ColourButton;
 
 #[derive(Component)]
 pub struct SizeButton(pub Vec3, pub &'static str);
@@ -91,6 +111,12 @@ pub struct PauseSaveButton;
 
 #[derive(Component)]
 pub struct PauseSaveAndQuitButton;
+
+#[derive(Component)]
+pub struct ControlsButton;
+
+#[derive(Component)]
+pub struct ControlsText;
 
 #[derive(Component)]
 pub struct NewHouseInputText;

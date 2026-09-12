@@ -1,5 +1,5 @@
+use crate::types::{ColorPickerState, CurrentWorld, PlacedBlock, PlacementSettings};
 use bevy::prelude::*;
-use crate::types::{CurrentWorld, PlacedBlock, PlacementSettings};
 
 const GRID_SIZE: f32 = 1.0;
 
@@ -46,7 +46,12 @@ pub fn load_current_world_system(
     }
 
     if !current_world.name.is_empty() {
-        crate::save::load_house_from_disk(&current_world.name, &mut commands, &mut meshes, &mut materials);
+        crate::save::load_house_from_disk(
+            &current_world.name,
+            &mut commands,
+            &mut meshes,
+            &mut materials,
+        );
     }
 }
 
@@ -60,23 +65,6 @@ pub fn keyboard_shortcut_system(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut settings: ResMut<PlacementSettings>,
 ) {
-    if keyboard.just_pressed(KeyCode::Digit1) {
-        settings.color = Color::srgb(0.8, 0.7, 0.6);
-        settings.color_name = "Wood / Beige";
-    }
-    if keyboard.just_pressed(KeyCode::Digit2) {
-        settings.color = Color::srgb(0.7, 0.2, 0.2);
-        settings.color_name = "Red Brick";
-    }
-    if keyboard.just_pressed(KeyCode::Digit3) {
-        settings.color = Color::srgb(0.5, 0.5, 0.5);
-        settings.color_name = "Gray Stone";
-    }
-    if keyboard.just_pressed(KeyCode::Digit4) {
-        settings.color = Color::srgb(0.2, 0.5, 0.8);
-        settings.color_name = "Blue Roof";
-    }
-
     if keyboard.just_pressed(KeyCode::KeyZ) {
         settings.size = Vec3::new(1.0, 1.0, 1.0);
         settings.size_name = "Standard Wall (1x1x1)";
@@ -97,7 +85,12 @@ pub fn keyboard_shortcut_system(
 }
 
 // Ray-AABB intersection returning (distance, surface_normal)
-fn intersect_ray_box(ray_origin: Vec3, ray_dir: Vec3, box_center: Vec3, box_size: Vec3) -> Option<(f32, Vec3)> {
+fn intersect_ray_box(
+    ray_origin: Vec3,
+    ray_dir: Vec3,
+    box_center: Vec3,
+    box_size: Vec3,
+) -> Option<(f32, Vec3)> {
     let min = box_center - box_size * 0.5;
     let max = box_center + box_size * 0.5;
 
@@ -124,12 +117,19 @@ fn intersect_ray_box(ray_origin: Vec3, ray_dir: Vec3, box_center: Vec3, box_size
     let mut normal = Vec3::Y;
     let eps = 0.001;
 
-    if (hit_point.x - min.x).abs() < eps { normal = -Vec3::X; }
-    else if (hit_point.x - max.x).abs() < eps { normal = Vec3::X; }
-    else if (hit_point.y - min.y).abs() < eps { normal = -Vec3::Y; }
-    else if (hit_point.y - max.y).abs() < eps { normal = Vec3::Y; }
-    else if (hit_point.z - min.z).abs() < eps { normal = -Vec3::Z; }
-    else if (hit_point.z - max.z).abs() < eps { normal = Vec3::Z; }
+    if (hit_point.x - min.x).abs() < eps {
+        normal = -Vec3::X;
+    } else if (hit_point.x - max.x).abs() < eps {
+        normal = Vec3::X;
+    } else if (hit_point.y - min.y).abs() < eps {
+        normal = -Vec3::Y;
+    } else if (hit_point.y - max.y).abs() < eps {
+        normal = Vec3::Y;
+    } else if (hit_point.z - min.z).abs() < eps {
+        normal = -Vec3::Z;
+    } else if (hit_point.z - max.z).abs() < eps {
+        normal = Vec3::Z;
+    }
 
     Some((t, normal))
 }
@@ -137,6 +137,7 @@ fn intersect_ray_box(ray_origin: Vec3, ray_dir: Vec3, box_center: Vec3, box_size
 pub fn place_wall_system(
     mouse_button: Res<ButtonInput<MouseButton>>,
     settings: Res<PlacementSettings>,
+    color_picker: Res<ColorPickerState>,
     window_query: Query<&Window>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     button_interactions: Query<&Interaction, With<Button>>,
@@ -145,6 +146,10 @@ pub fn place_wall_system(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
+    if color_picker.is_open {
+        return;
+    }
+
     if !mouse_button.just_pressed(MouseButton::Left) {
         return;
     }
@@ -155,8 +160,12 @@ pub fn place_wall_system(
         }
     }
 
-    let Ok(window) = window_query.single() else { return; };
-    let Ok((camera, camera_transform)) = camera_query.single() else { return; };
+    let Ok(window) = window_query.single() else {
+        return;
+    };
+    let Ok((camera, camera_transform)) = camera_query.single() else {
+        return;
+    };
 
     if let Some(cursor_pos) = window.cursor_position() {
         if let Ok(ray) = camera.viewport_to_world(camera_transform, cursor_pos) {
@@ -168,7 +177,9 @@ pub fn place_wall_system(
                 let mut min_t = f32::MAX;
 
                 for (entity, block) in placed_blocks_query.iter() {
-                    if let Some((t, _)) = intersect_ray_box(ray_origin, ray_dir, block.center, block.size) {
+                    if let Some((t, _)) =
+                        intersect_ray_box(ray_origin, ray_dir, block.center, block.size)
+                    {
                         if t > 0.0 && t < min_t {
                             min_t = t;
                             closest_block = Some((t, entity));
@@ -183,8 +194,16 @@ pub fn place_wall_system(
             }
 
             enum HitTarget {
-                Ground { hit_point: Vec3, normal: Vec3 },
-                Block { _t: f32, normal: Vec3, center: Vec3, size: Vec3 },
+                Ground {
+                    hit_point: Vec3,
+                    normal: Vec3,
+                },
+                Block {
+                    _t: f32,
+                    normal: Vec3,
+                    center: Vec3,
+                    size: Vec3,
+                },
             }
 
             let mut closest_hit: Option<HitTarget> = None;
@@ -204,7 +223,9 @@ pub fn place_wall_system(
 
             // 2. Check existing placed blocks
             for (_, block) in placed_blocks_query.iter() {
-                if let Some((t, normal)) = intersect_ray_box(ray_origin, ray_dir, block.center, block.size) {
+                if let Some((t, normal)) =
+                    intersect_ray_box(ray_origin, ray_dir, block.center, block.size)
+                {
                     if t > 0.0 && t < min_t {
                         min_t = t;
                         closest_hit = Some(HitTarget::Block {
@@ -226,7 +247,11 @@ pub fn place_wall_system(
                         center.z = (center.z / GRID_SIZE).round() * GRID_SIZE;
                         center
                     }
-                    HitTarget::Block { normal, size: hit_size, .. } => {
+                    HitTarget::Block {
+                        normal,
+                        size: hit_size,
+                        ..
+                    } => {
                         let hit_center = match target {
                             HitTarget::Block { center, .. } => center,
                             _ => unreachable!(),
@@ -236,7 +261,11 @@ pub fn place_wall_system(
                 };
 
                 commands.spawn((
-                    Mesh3d(meshes.add(Cuboid::new(settings.size.x, settings.size.y, settings.size.z))),
+                    Mesh3d(meshes.add(Cuboid::new(
+                        settings.size.x,
+                        settings.size.y,
+                        settings.size.z,
+                    ))),
                     MeshMaterial3d(materials.add(settings.color)),
                     Transform::from_translation(block_center),
                     PlacedBlock {

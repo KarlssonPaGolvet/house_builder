@@ -5,38 +5,23 @@ mod types;
 mod ui;
 
 use bevy::prelude::*;
+use bevy_egui::{EguiPlugin, EguiPrimaryContextPass};
 
 use building::{
-    cleanup_blocks,
-    keyboard_shortcut_system,
-    load_current_world_system,
-    place_wall_system,
+    cleanup_blocks, keyboard_shortcut_system, load_current_world_system, place_wall_system,
     setup_scene,
 };
 
 use camera::camera_movement_system;
 
-use types::{
-    CurrentWorld, GameState, PlacedBlock, PlacementSettings,
-};
+use types::{CurrentWorld, GameState, PlacedBlock, PlacementSettings};
 
 use ui::{
-    cleanup_game_hud,
-    cleanup_main_menu,
-    cleanup_new_house_menu,
-    cleanup_pause_menu,
-    cleanup_saved_houses_menu,
-    main_menu_interaction_system,
-    new_house_input_system,
-    pause_menu_interaction_system,
-    saved_houses_interaction_system,
-    setup_main_menu,
-    setup_new_house_menu,
-    setup_pause_menu,
-    setup_saved_houses_menu,
-    setup_ui,
-    ui_interaction_system,
-    update_status_text_system,
+    cleanup_game_hud, cleanup_main_menu, cleanup_new_house_menu, cleanup_pause_menu,
+    cleanup_saved_houses_menu, color_picker_system, main_menu_interaction_system,
+    new_house_input_system, pause_menu_interaction_system, saved_houses_interaction_system,
+    setup_main_menu, setup_new_house_menu, setup_pause_menu, setup_saved_houses_menu, setup_ui,
+    ui_interaction_system, update_status_text_system,
 };
 
 fn main() {
@@ -48,46 +33,27 @@ fn main() {
             }),
             ..default()
         }))
+        .add_plugins(EguiPlugin::default())
         .init_state::<GameState>()
         .init_resource::<PlacementSettings>()
         .init_resource::<types::TextInputBuffer>()
+        .init_resource::<types::ColorInputBuffer>()
+        .init_resource::<types::ColorPickerState>()
         .init_resource::<types::CurrentWorld>()
         .add_systems(Startup, setup_scene)
-        .add_systems(
-            OnEnter(GameState::MainMenu),
-            setup_main_menu,
-        )
-        .add_systems(
-            OnExit(GameState::MainMenu),
-            cleanup_main_menu,
-        )
-        .add_systems(
-            OnEnter(GameState::SavedHouses),
-            setup_saved_houses_menu,
-        )
-        .add_systems(
-            OnExit(GameState::SavedHouses),
-            cleanup_saved_houses_menu,
-        )
-        .add_systems(
-            OnEnter(GameState::NewHouseInput),
-            setup_new_house_menu,
-        )
-        .add_systems(
-            OnExit(GameState::NewHouseInput),
-            cleanup_new_house_menu,
-        )
+        .add_systems(OnEnter(GameState::MainMenu), setup_main_menu)
+        .add_systems(OnExit(GameState::MainMenu), cleanup_main_menu)
+        .add_systems(OnEnter(GameState::SavedHouses), setup_saved_houses_menu)
+        .add_systems(OnExit(GameState::SavedHouses), cleanup_saved_houses_menu)
+        .add_systems(OnEnter(GameState::NewHouseInput), setup_new_house_menu)
+        .add_systems(OnExit(GameState::NewHouseInput), cleanup_new_house_menu)
         .add_systems(
             OnEnter(GameState::Playing),
             (setup_ui, load_current_world_system),
         )
-        .add_systems(
-            OnEnter(GameState::Paused),
-            setup_pause_menu,
-        )
+        .add_systems(OnEnter(GameState::Paused), setup_pause_menu)
         .add_systems(
             OnExit(GameState::Paused),
-            
             (
                 save_current_world_system,
                 cleanup_blocks,
@@ -97,18 +63,15 @@ fn main() {
         )
         .add_systems(
             Update,
-            main_menu_interaction_system
-                .run_if(in_state(GameState::MainMenu)),
+            main_menu_interaction_system.run_if(in_state(GameState::MainMenu)),
         )
         .add_systems(
             Update,
-            saved_houses_interaction_system
-                .run_if(in_state(GameState::SavedHouses)),
+            saved_houses_interaction_system.run_if(in_state(GameState::SavedHouses)),
         )
         .add_systems(
             Update,
-            new_house_input_system
-                .run_if(in_state(GameState::NewHouseInput)),
+            new_house_input_system.run_if(in_state(GameState::NewHouseInput)),
         )
         .add_systems(
             Update,
@@ -122,9 +85,12 @@ fn main() {
                 .run_if(in_state(GameState::Playing)),
         )
         .add_systems(
+            EguiPrimaryContextPass,
+            color_picker_system.run_if(in_state(GameState::Playing)),
+        )
+        .add_systems(
             Update,
-            pause_menu_interaction_system
-                .run_if(in_state(GameState::Paused)),
+            pause_menu_interaction_system.run_if(in_state(GameState::Paused)),
         )
         .add_systems(Update, toggle_pause_system)
         .run();

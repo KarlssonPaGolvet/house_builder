@@ -5,7 +5,9 @@ pub fn camera_movement_system(
     time: Res<Time>,
     mut camera_query: Query<&mut Transform, With<Camera3d>>,
 ) {
-    let Ok(mut transform) = camera_query.single_mut() else { return; };
+    let Ok(mut transform) = camera_query.single_mut() else {
+        return;
+    };
     let delta = time.delta_secs();
     let speed = 12.0 * delta;
     let rotation_speed = 2.0 * delta;
