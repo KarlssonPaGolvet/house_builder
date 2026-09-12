@@ -199,6 +199,8 @@ pub fn color_picker_system(
     mut settings: ResMut<PlacementSettings>,
     mut color_input: ResMut<ColorInputBuffer>,
     mut picker: ResMut<ColorPickerState>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    block_materials: Query<&MeshMaterial3d<StandardMaterial>, With<PlacedBlock>>,
 ) {
     if !picker.is_open {
         return;
@@ -239,6 +241,7 @@ pub fn color_picker_system(
                 settings.color_name = format!("#{red:02X}{green:02X}{blue:02X}");
                 color_input.text = settings.color_name.clone();
                 add_color_to_history(&mut picker.history, &settings.color_name);
+                apply_edit_color(&settings, &mut materials, &block_materials);
             }
 
             ui.label("Hexadecimal");
@@ -249,6 +252,7 @@ pub fn color_picker_system(
                     settings.color_name = normalize_hex(&hex);
                     color_input.text = settings.color_name.clone();
                     add_color_to_history(&mut picker.history, &settings.color_name);
+                    apply_edit_color(&settings, &mut materials, &block_materials);
                 }
             }
 
@@ -279,6 +283,7 @@ pub fn color_picker_system(
                                 settings.color = parsed;
                                 settings.color_name = history_color.clone();
                                 color_input.text = history_color.clone();
+                                apply_edit_color(&settings, &mut materials, &block_materials);
                             }
                         }
                     });
@@ -287,6 +292,22 @@ pub fn color_picker_system(
         });
 
     picker.is_open = is_open;
+}
+
+fn apply_edit_color(
+    settings: &PlacementSettings,
+    materials: &mut Assets<StandardMaterial>,
+    block_materials: &Query<&MeshMaterial3d<StandardMaterial>, With<PlacedBlock>>,
+) {
+    let Some(entity) = settings.editing_entity else {
+        return;
+    };
+    let Ok(material_handle) = block_materials.get(entity) else {
+        return;
+    };
+    if let Some(mut material) = materials.get_mut(&material_handle.0) {
+        material.base_color = settings.color;
+    }
 }
 
 fn add_color_to_history(history: &mut Vec<String>, color: &str) {
@@ -327,14 +348,22 @@ pub fn update_status_text_system(
 ) {
     if settings.is_changed() {
         if let Ok(mut text) = text_query.single_mut() {
-            let mode_str = if settings.is_deleting {
+            let mode_str = if settings.editing_mode {
+                "EDIT"
+            } else if settings.is_deleting {
                 "DELETE"
             } else {
                 "BUILD"
             };
             text.0 = format!(
-                "Mode: {}\nColor: {}\nSize: {}\nRotation: {}°",
-                mode_str, settings.color_name, settings.size_name, settings.rotation_angle as i32
+                "Mode: {}\nColor: {}\nSize: {}\nRotation: {}",
+                mode_str,
+                settings.color_name,
+                settings.size_name,
+                format!(
+                    "X {}° / Y {}°",
+                    settings.rotation_x as i32, settings.rotation_y as i32
+                )
             );
         }
     }
@@ -725,7 +754,7 @@ pub fn setup_pause_menu(mut commands: Commands) {
 
             parent.spawn((
                 Text::new(
-                    "Move: WASD\nElevation: Space / Shift\nRotate view: Hold R + WASD\nSelect colour: Colour button\nDelete block: P\nChange size: Z / X / C\nPause: Esc",
+                    "Move: WASD\nElevation: Space / Shift\nRotate view: Hold R + WASD\nRotate block: Arrow keys\nEdit block: B, then click a block\nSelect colour: Colour button\nDelete block: P\nChange size: Z / X / C\nPause: Esc",
                 ),
                 TextFont {
                     font_size: FontSize::Px(14.0),

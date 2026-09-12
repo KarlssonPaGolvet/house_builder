@@ -18,7 +18,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -37,7 +39,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -56,7 +60,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -75,7 +81,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -94,7 +102,9 @@
         0.76862746,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -113,7 +123,9 @@
         0.6156863,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -132,7 +144,9 @@
         0.73333335,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -151,7 +165,9 @@
         0.73333335,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -170,7 +186,9 @@
         0.73333335,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -189,7 +207,9 @@
         0.73333335,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -208,7 +228,9 @@
         0.73333335,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -227,7 +249,9 @@
         0.73333335,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -246,7 +270,9 @@
         0.73333335,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -265,7 +291,9 @@
         0.73333335,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -284,7 +312,9 @@
         0.79607844,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -303,7 +333,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -322,7 +354,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -341,7 +375,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -360,7 +396,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -379,7 +417,30 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
+    },
+    {
+      "center": [
+        8.0,
+        0.5,
+        5.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.99607843,
+        0.15686275,
+        0.5372549,
+        1.0
+      ],
+      "rotation_angle": 180.0,
+      "rotation_x": 0.0,
+      "rotation_y": 180.0
     },
     {
       "center": [
@@ -398,7 +459,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -417,13 +480,15 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
-        5.0,
+        4.0,
         0.5,
-        4.0
+        7.0
       ],
       "size": [
         1.0,
@@ -431,31 +496,14 @@
         1.0
       ],
       "color": [
-        0.93333334,
-        0.12941177,
-        0.9764706,
+        0.8,
+        0.7,
+        0.6,
         1.0
       ],
-      "rotation_angle": 0.0
-    },
-    {
-      "center": [
-        5.0,
-        1.5,
-        4.0
-      ],
-      "size": [
-        1.0,
-        1.0,
-        1.0
-      ],
-      "color": [
-        0.93333334,
-        0.12941177,
-        0.9764706,
-        1.0
-      ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -474,7 +522,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -493,7 +543,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -512,7 +564,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -531,7 +585,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -550,7 +606,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -569,7 +627,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -588,7 +648,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -607,7 +669,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -626,7 +690,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -645,7 +711,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -664,7 +732,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -683,7 +753,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -702,45 +774,51 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
-        1.0,
-        3.0,
-        4.0
-      ],
-      "size": [
-        1.0,
-        2.0,
-        1.0
-      ],
-      "color": [
-        0.93333334,
-        0.12941177,
-        0.9764706,
-        1.0
-      ],
-      "rotation_angle": 0.0
-    },
-    {
-      "center": [
-        1.0,
-        3.0,
+        9.0,
+        0.5,
         5.0
       ],
       "size": [
         1.0,
-        2.0,
+        1.0,
         1.0
       ],
       "color": [
-        0.93333334,
-        0.12941177,
-        0.9764706,
+        0.99607843,
+        0.15686275,
+        0.5372549,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 180.0,
+      "rotation_x": 0.0,
+      "rotation_y": 180.0
+    },
+    {
+      "center": [
+        8.0,
+        0.5,
+        6.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.99607843,
+        0.15686275,
+        0.5372549,
+        1.0
+      ],
+      "rotation_angle": 180.0,
+      "rotation_x": 0.0,
+      "rotation_y": 180.0
     },
     {
       "center": [
@@ -759,7 +837,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -778,7 +858,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -797,7 +879,9 @@
         0.9764706,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -816,7 +900,9 @@
         0.38039216,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -835,7 +921,9 @@
         0.38039216,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 180.0,
+      "rotation_x": 270.0,
+      "rotation_y": 180.0
     },
     {
       "center": [
@@ -854,7 +942,9 @@
         0.38039216,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -873,7 +963,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -892,7 +984,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -911,7 +1005,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -930,7 +1026,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -949,7 +1047,9 @@
         0.78039217,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -968,7 +1068,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -987,7 +1089,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1006,7 +1110,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1025,7 +1131,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1044,7 +1152,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1063,7 +1173,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1082,7 +1194,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1101,7 +1215,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1120,7 +1236,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1139,7 +1257,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1158,7 +1278,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1177,7 +1299,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1196,7 +1320,9 @@
         0.6156863,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1215,7 +1341,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1234,7 +1362,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1253,7 +1383,9 @@
         0.6156863,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1272,7 +1404,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1291,7 +1425,9 @@
         0.7921569,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1310,7 +1446,9 @@
         0.9372549,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1329,7 +1467,9 @@
         0.9372549,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1348,7 +1488,9 @@
         0.9372549,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1367,7 +1509,9 @@
         0.9372549,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1386,7 +1530,9 @@
         0.9372549,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1405,7 +1551,9 @@
         0.6156863,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1424,7 +1572,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1443,7 +1593,9 @@
         0.6,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1462,7 +1614,9 @@
         0.4862745,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1481,7 +1635,9 @@
         0.4862745,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1500,7 +1656,9 @@
         0.4862745,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1519,7 +1677,9 @@
         0.4862745,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1538,7 +1698,9 @@
         0.4862745,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1557,7 +1719,9 @@
         0.4862745,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
     },
     {
       "center": [
@@ -1576,7 +1740,114 @@
         0.4862745,
         1.0
       ],
-      "rotation_angle": 0.0
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
+    },
+    {
+      "center": [
+        3.0,
+        0.5,
+        7.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0
+    },
+    {
+      "center": [
+        3.0,
+        0.5,
+        8.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.99607843,
+        0.15686275,
+        0.5372549,
+        1.0
+      ],
+      "rotation_angle": 180.0,
+      "rotation_x": 0.0,
+      "rotation_y": 180.0
+    },
+    {
+      "center": [
+        1.0,
+        3.0,
+        5.0
+      ],
+      "size": [
+        1.0,
+        2.0,
+        1.0
+      ],
+      "color": [
+        0.93333334,
+        0.12941177,
+        0.9764706,
+        1.0
+      ],
+      "rotation_angle": 180.0,
+      "rotation_x": 0.0,
+      "rotation_y": 180.0
+    },
+    {
+      "center": [
+        3.0,
+        1.0,
+        4.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.99607843,
+        0.15686275,
+        0.5372549,
+        1.0
+      ],
+      "rotation_angle": 180.0,
+      "rotation_x": 0.0,
+      "rotation_y": 180.0
+    },
+    {
+      "center": [
+        8.0,
+        0.5,
+        4.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.99607843,
+        0.15686275,
+        0.5372549,
+        1.0
+      ],
+      "rotation_angle": 180.0,
+      "rotation_x": 0.0,
+      "rotation_y": 180.0
     }
   ]
 }

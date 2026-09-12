@@ -8,8 +8,8 @@ use bevy::prelude::*;
 use bevy_egui::{EguiPlugin, EguiPrimaryContextPass};
 
 use building::{
-    cleanup_blocks, keyboard_shortcut_system, load_current_world_system, place_wall_system,
-    setup_scene,
+    animate_selection_system, cleanup_blocks, keyboard_shortcut_system, load_current_world_system,
+    place_wall_system, setup_scene,
 };
 
 use camera::camera_movement_system;
@@ -81,6 +81,7 @@ fn main() {
                 keyboard_shortcut_system,
                 update_status_text_system,
                 place_wall_system,
+                animate_selection_system,
             )
                 .run_if(in_state(GameState::Playing)),
         )

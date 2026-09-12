@@ -1,4 +1,6 @@
-use crate::types::{ColorPickerState, CurrentWorld, PlacedBlock, PlacementSettings};
+use crate::types::{
+    ColorPickerState, CurrentWorld, PlacedBlock, PlacementSettings, SelectionHighlight,
+};
 use bevy::prelude::*;
 
 const GRID_SIZE: f32 = 1.0;
@@ -64,7 +66,15 @@ pub fn cleanup_blocks(mut commands: Commands, query: Query<Entity, With<PlacedBl
 pub fn keyboard_shortcut_system(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut settings: ResMut<PlacementSettings>,
+    color_picker: Res<ColorPickerState>,
+    mut blocks_query: Query<(&mut Transform, &mut PlacedBlock)>,
+    mut commands: Commands,
+    highlight_query: Query<Entity, With<SelectionHighlight>>,
 ) {
+    if color_picker.is_open {
+        return;
+    }
+
     if keyboard.just_pressed(KeyCode::KeyZ) {
         settings.size = Vec3::new(1.0, 1.0, 1.0);
         settings.size_name = "Standard Wall (1x1x1)";
@@ -82,6 +92,54 @@ pub fn keyboard_shortcut_system(
     if keyboard.just_pressed(KeyCode::KeyP) {
         settings.is_deleting = !settings.is_deleting;
     }
+
+    if keyboard.just_pressed(KeyCode::KeyB) {
+        settings.editing_mode = !settings.editing_mode;
+        settings.editing_entity = None;
+        if !settings.editing_mode {
+            for entity in highlight_query.iter() {
+                commands.entity(entity).despawn();
+            }
+        }
+    }
+
+    let mut rotation_changed = false;
+    if keyboard.just_pressed(KeyCode::ArrowLeft) {
+        settings.rotation_y = wrap_angle(settings.rotation_y - 90.0);
+        rotation_changed = true;
+    }
+    if keyboard.just_pressed(KeyCode::ArrowRight) {
+        settings.rotation_y = wrap_angle(settings.rotation_y + 90.0);
+        rotation_changed = true;
+    }
+    if keyboard.just_pressed(KeyCode::ArrowUp) {
+        settings.rotation_x = wrap_angle(settings.rotation_x + 90.0);
+        rotation_changed = true;
+    }
+    if keyboard.just_pressed(KeyCode::ArrowDown) {
+        settings.rotation_x = wrap_angle(settings.rotation_x - 90.0);
+        rotation_changed = true;
+    }
+
+    if rotation_changed {
+        if let Some(entity) = settings.editing_entity {
+            if let Ok((mut transform, mut block)) = blocks_query.get_mut(entity) {
+                block.rotation_x = settings.rotation_x;
+                block.rotation_y = settings.rotation_y;
+                transform.rotation = rotation_quat(settings.rotation_x, settings.rotation_y);
+            } else {
+                settings.editing_entity = None;
+            }
+        }
+    }
+}
+
+fn wrap_angle(angle: f32) -> f32 {
+    angle.rem_euclid(360.0)
+}
+
+fn rotation_quat(rotation_x: f32, rotation_y: f32) -> Quat {
+    Quat::from_rotation_y(rotation_y.to_radians()) * Quat::from_rotation_x(rotation_x.to_radians())
 }
 
 // Ray-AABB intersection returning (distance, surface_normal)
@@ -136,12 +194,13 @@ fn intersect_ray_box(
 
 pub fn place_wall_system(
     mouse_button: Res<ButtonInput<MouseButton>>,
-    settings: Res<PlacementSettings>,
+    mut settings: ResMut<PlacementSettings>,
     color_picker: Res<ColorPickerState>,
     window_query: Query<&Window>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     button_interactions: Query<&Interaction, With<Button>>,
     placed_blocks_query: Query<(Entity, &PlacedBlock)>,
+    selection_highlights: Query<Entity, With<SelectionHighlight>>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -171,6 +230,45 @@ pub fn place_wall_system(
         if let Ok(ray) = camera.viewport_to_world(camera_transform, cursor_pos) {
             let ray_origin = ray.origin;
             let ray_dir: Vec3 = ray.direction.into();
+
+            if settings.editing_mode {
+                let mut closest_block: Option<(f32, Entity, f32, f32, Vec3)> = None;
+                let mut min_t = f32::MAX;
+
+                for (entity, block) in placed_blocks_query.iter() {
+                    if let Some((t, _)) =
+                        intersect_ray_box(ray_origin, ray_dir, block.center, block.size)
+                    {
+                        if t > 0.0 && t < min_t {
+                            min_t = t;
+                            closest_block =
+                                Some((t, entity, block.rotation_x, block.rotation_y, block.size));
+                        }
+                    }
+                }
+
+                if let Some((_, entity, rotation_x, rotation_y, size)) = closest_block {
+                    settings.editing_entity = Some(entity);
+                    settings.rotation_x = rotation_x;
+                    settings.rotation_y = rotation_y;
+                    for highlight in selection_highlights.iter() {
+                        commands.entity(highlight).despawn();
+                    }
+                    spawn_selection_highlight(
+                        &mut commands,
+                        entity,
+                        size,
+                        &mut meshes,
+                        &mut materials,
+                    );
+                } else {
+                    settings.editing_entity = None;
+                    for highlight in selection_highlights.iter() {
+                        commands.entity(highlight).despawn();
+                    }
+                }
+                return;
+            }
 
             if settings.is_deleting {
                 let mut closest_block: Option<(f32, Entity)> = None;
@@ -267,14 +365,104 @@ pub fn place_wall_system(
                         settings.size.z,
                     ))),
                     MeshMaterial3d(materials.add(settings.color)),
-                    Transform::from_translation(block_center),
+                    Transform::from_translation(block_center)
+                        .with_rotation(rotation_quat(settings.rotation_x, settings.rotation_y)),
                     PlacedBlock {
                         center: block_center,
                         size: settings.size,
-                        rotation_angle: settings.rotation_angle,
+                        rotation_x: settings.rotation_x,
+                        rotation_y: settings.rotation_y,
                     },
                 ));
             }
+        }
+    }
+}
+
+fn spawn_selection_highlight(
+    commands: &mut Commands,
+    entity: Entity,
+    size: Vec3,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<StandardMaterial>>,
+) {
+    let thickness = 0.035;
+    let x_mesh = meshes.add(Cuboid::new(thickness, size.y + thickness, thickness));
+    let y_mesh = meshes.add(Cuboid::new(size.x + thickness, thickness, thickness));
+    let z_mesh = meshes.add(Cuboid::new(thickness, thickness, size.z + thickness));
+    let material = materials.add(StandardMaterial {
+        base_color: Color::srgb(0.2, 0.55, 1.0),
+        unlit: true,
+        ..default()
+    });
+    let half = size * 0.5;
+    let offset = thickness * 0.5;
+
+    commands.entity(entity).with_children(|parent| {
+        for x in [-1.0, 1.0] {
+            for z in [-1.0, 1.0] {
+                parent.spawn((
+                    Mesh3d(x_mesh.clone()),
+                    MeshMaterial3d(material.clone()),
+                    Transform::from_translation(Vec3::new(
+                        x * (half.x + offset),
+                        0.0,
+                        z * (half.z + offset),
+                    )),
+                    SelectionHighlight,
+                ));
+            }
+        }
+        for y in [-1.0, 1.0] {
+            for z in [-1.0, 1.0] {
+                parent.spawn((
+                    Mesh3d(y_mesh.clone()),
+                    MeshMaterial3d(material.clone()),
+                    Transform::from_translation(Vec3::new(
+                        0.0,
+                        y * (half.y + offset),
+                        z * (half.z + offset),
+                    )),
+                    SelectionHighlight,
+                ));
+            }
+        }
+        for x in [-1.0, 1.0] {
+            for y in [-1.0, 1.0] {
+                parent.spawn((
+                    Mesh3d(z_mesh.clone()),
+                    MeshMaterial3d(material.clone()),
+                    Transform::from_translation(Vec3::new(
+                        x * (half.x + offset),
+                        y * (half.y + offset),
+                        0.0,
+                    )),
+                    SelectionHighlight,
+                ));
+            }
+        }
+    });
+}
+
+pub fn animate_selection_system(
+    time: Res<Time>,
+    settings: Res<PlacementSettings>,
+    highlights: Query<&MeshMaterial3d<StandardMaterial>, With<SelectionHighlight>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    if !settings.editing_mode || settings.editing_entity.is_none() {
+        return;
+    }
+
+    let pulse = (time.elapsed_secs() * 3.0).sin() * 0.5 + 0.5;
+    let color = Color::srgb(
+        0.15 + pulse * 0.55,
+        0.35 + pulse * 0.55,
+        0.75 + pulse * 0.25,
+    );
+    for material_handle in highlights.iter() {
+        if let Some(mut material) = materials.get_mut(&material_handle.0) {
+            material.base_color = color;
         }
     }
 }

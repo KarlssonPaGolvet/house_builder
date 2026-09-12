@@ -9,6 +9,10 @@ pub struct BlockSaveData {
     pub size: [f32; 3],
     pub color: [f32; 4],
     pub rotation_angle: f32,
+    #[serde(default)]
+    pub rotation_x: Option<f32>,
+    #[serde(default)]
+    pub rotation_y: Option<f32>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -64,7 +68,9 @@ pub fn save_house_to_disk(
             center: [block.center.x, block.center.y, block.center.z],
             size: [block.size.x, block.size.y, block.size.z],
             color,
-            rotation_angle: block.rotation_angle,
+            rotation_angle: block.rotation_y,
+            rotation_x: Some(block.rotation_x),
+            rotation_y: Some(block.rotation_y),
         });
     }
 
@@ -92,15 +98,21 @@ pub fn load_house_from_disk(
                 let center = Vec3::new(b.center[0], b.center[1], b.center[2]);
                 let size = Vec3::new(b.size[0], b.size[1], b.size[2]);
                 let color = Color::srgba(b.color[0], b.color[1], b.color[2], b.color[3]);
+                let rotation_x = b.rotation_x.unwrap_or(0.0);
+                let rotation_y = b.rotation_y.unwrap_or(b.rotation_angle);
 
                 commands.spawn((
                     Mesh3d(meshes.add(Cuboid::new(size.x, size.y, size.z))),
                     MeshMaterial3d(materials.add(color)),
-                    Transform::from_translation(center),
+                    Transform::from_translation(center).with_rotation(
+                        Quat::from_rotation_y(rotation_y.to_radians())
+                            * Quat::from_rotation_x(rotation_x.to_radians()),
+                    ),
                     PlacedBlock {
                         center,
                         size,
-                        rotation_angle: b.rotation_angle,
+                        rotation_x,
+                        rotation_y,
                     },
                 ));
             }

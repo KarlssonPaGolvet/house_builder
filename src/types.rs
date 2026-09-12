@@ -16,8 +16,11 @@ pub struct PlacementSettings {
     pub color_name: String,
     pub size: Vec3,
     pub size_name: &'static str,
-    pub rotation_angle: f32, // 0.0, 90.0, 180.0, 270.0
+    pub rotation_x: f32,
+    pub rotation_y: f32,
     pub is_deleting: bool,
+    pub editing_mode: bool,
+    pub editing_entity: Option<Entity>,
 }
 
 impl Default for PlacementSettings {
@@ -27,8 +30,11 @@ impl Default for PlacementSettings {
             color_name: "#CCB399".to_string(),
             size: Vec3::new(1.0, 1.0, 1.0),
             size_name: "Standard Wall (1x1x1)",
-            rotation_angle: 0.0,
+            rotation_x: 0.0,
+            rotation_y: 0.0,
             is_deleting: false,
+            editing_mode: false,
+            editing_entity: None,
         }
     }
 }
@@ -67,8 +73,12 @@ pub struct ColorPickerState {
 pub struct PlacedBlock {
     pub center: Vec3,
     pub size: Vec3,
-    pub rotation_angle: f32,
+    pub rotation_x: f32,
+    pub rotation_y: f32,
 }
+
+#[derive(Component)]
+pub struct SelectionHighlight;
 
 #[derive(Component)]
 pub struct ColourButton;
