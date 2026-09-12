@@ -69,6 +69,24 @@ pub struct ColorPickerState {
     pub history: Vec<String>,
 }
 
+#[derive(Resource, Default)]
+pub struct BlockMenuState {
+    pub is_open: bool,
+}
+
+#[derive(Resource, Default)]
+pub struct EditPositionState {
+    pub entity: Option<Entity>,
+    pub is_open: bool,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub x_text: String,
+    pub y_text: String,
+    pub z_text: String,
+    pub warning: Option<String>,
+}
+
 #[derive(Component)]
 pub struct PlacedBlock {
     pub center: Vec3,
@@ -84,7 +102,13 @@ pub struct SelectionHighlight;
 pub struct ColourButton;
 
 #[derive(Component)]
-pub struct SizeButton(pub Vec3, pub &'static str);
+pub struct BlockMenuButton;
+
+#[derive(Component)]
+pub struct EditCoordinatesButton;
+
+#[derive(Component)]
+pub struct CoordinateText;
 
 #[derive(Component)]
 pub struct StatusText;

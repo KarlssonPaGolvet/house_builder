@@ -5,6 +5,7 @@ mod types;
 mod ui;
 
 use bevy::prelude::*;
+use bevy::window::{MonitorSelection, WindowMode};
 use bevy_egui::{EguiPlugin, EguiPrimaryContextPass};
 
 use building::{
@@ -29,6 +30,7 @@ fn main() {
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "3D House Builder".into(),
+                mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
                 ..default()
             }),
             ..default()
@@ -39,6 +41,8 @@ fn main() {
         .init_resource::<types::TextInputBuffer>()
         .init_resource::<types::ColorInputBuffer>()
         .init_resource::<types::ColorPickerState>()
+        .init_resource::<types::BlockMenuState>()
+        .init_resource::<types::EditPositionState>()
         .init_resource::<types::CurrentWorld>()
         .add_systems(Startup, setup_scene)
         .add_systems(OnEnter(GameState::MainMenu), setup_main_menu)

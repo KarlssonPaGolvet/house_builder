@@ -1,7 +1,9 @@
 use crate::types::{
-    ColorPickerState, CurrentWorld, PlacedBlock, PlacementSettings, SelectionHighlight,
+    ColorPickerState, CurrentWorld, EditPositionState, PlacedBlock, PlacementSettings,
+    SelectionHighlight,
 };
 use bevy::prelude::*;
+use bevy_egui::EguiContexts;
 
 const GRID_SIZE: f32 = 1.0;
 
@@ -73,19 +75,6 @@ pub fn keyboard_shortcut_system(
 ) {
     if color_picker.is_open {
         return;
-    }
-
-    if keyboard.just_pressed(KeyCode::KeyZ) {
-        settings.size = Vec3::new(1.0, 1.0, 1.0);
-        settings.size_name = "Standard Wall (1x1x1)";
-    }
-    if keyboard.just_pressed(KeyCode::KeyX) {
-        settings.size = Vec3::new(1.0, 2.0, 1.0);
-        settings.size_name = "Tall Wall (1x2x1)";
-    }
-    if keyboard.just_pressed(KeyCode::KeyC) {
-        settings.size = Vec3::new(2.0, 1.0, 1.0);
-        settings.size_name = "Wide Wall (2x1x1)";
     }
 
     // Toggle delete mode with 'P' (leaving 'R' completely untouched)
@@ -194,7 +183,9 @@ fn intersect_ray_box(
 
 pub fn place_wall_system(
     mouse_button: Res<ButtonInput<MouseButton>>,
+    mut egui_contexts: EguiContexts,
     mut settings: ResMut<PlacementSettings>,
+    mut edit_position: ResMut<EditPositionState>,
     color_picker: Res<ColorPickerState>,
     window_query: Query<&Window>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
@@ -207,6 +198,12 @@ pub fn place_wall_system(
 ) {
     if color_picker.is_open {
         return;
+    }
+
+    if let Ok(context) = egui_contexts.ctx_mut() {
+        if context.egui_wants_pointer_input() {
+            return;
+        }
     }
 
     if !mouse_button.just_pressed(MouseButton::Left) {
@@ -251,6 +248,7 @@ pub fn place_wall_system(
                     settings.editing_entity = Some(entity);
                     settings.rotation_x = rotation_x;
                     settings.rotation_y = rotation_y;
+                    edit_position.entity = Some(entity);
                     for highlight in selection_highlights.iter() {
                         commands.entity(highlight).despawn();
                     }
@@ -358,22 +356,25 @@ pub fn place_wall_system(
                     }
                 };
 
-                commands.spawn((
-                    Mesh3d(meshes.add(Cuboid::new(
-                        settings.size.x,
-                        settings.size.y,
-                        settings.size.z,
-                    ))),
-                    MeshMaterial3d(materials.add(settings.color)),
-                    Transform::from_translation(block_center)
-                        .with_rotation(rotation_quat(settings.rotation_x, settings.rotation_y)),
-                    PlacedBlock {
-                        center: block_center,
-                        size: settings.size,
-                        rotation_x: settings.rotation_x,
-                        rotation_y: settings.rotation_y,
-                    },
-                ));
+                let placed_entity = commands
+                    .spawn((
+                        Mesh3d(meshes.add(Cuboid::new(
+                            settings.size.x,
+                            settings.size.y,
+                            settings.size.z,
+                        ))),
+                        MeshMaterial3d(materials.add(settings.color)),
+                        Transform::from_translation(block_center)
+                            .with_rotation(rotation_quat(settings.rotation_x, settings.rotation_y)),
+                        PlacedBlock {
+                            center: block_center,
+                            size: settings.size,
+                            rotation_x: settings.rotation_x,
+                            rotation_y: settings.rotation_y,
+                        },
+                    ))
+                    .id();
+                edit_position.entity = Some(placed_entity);
             }
         }
     }
