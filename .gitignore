@@ -1,1 +1,7 @@
 /target
+
+# Ignore everything inside the saves directory
+saves/*
+
+# Do not ignore the .gitkeep file so the folder stays in Git
+!saves/.gitkeep
