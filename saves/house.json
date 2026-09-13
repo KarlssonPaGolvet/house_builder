@@ -4401,6 +4401,330 @@
         -0.7071067,
         0.7071067
       ]
+    },
+    {
+      "center": [
+        3.0,
+        0.5,
+        13.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        2.0,
+        0.5,
+        13.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        11.0,
+        0.5,
+        16.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        10.0,
+        0.5,
+        16.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        9.0,
+        0.5,
+        16.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        8.0,
+        0.5,
+        16.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        8.0,
+        1.5,
+        16.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        7.0,
+        1.5,
+        16.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        7.0,
+        1.5,
+        17.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        7.0,
+        2.5,
+        17.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        6.0,
+        2.5,
+        17.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        5.0,
+        2.5,
+        17.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     }
   ]
 }

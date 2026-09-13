@@ -1,0 +1,275 @@
+{
+  "name": "hello again",
+  "blocks": [
+    {
+      "center": [
+        0.0,
+        0.5,
+        4.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        5.0,
+        0.49999905,
+        5.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        4.0,
+        0.49999905,
+        6.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        12.0,
+        0.5,
+        -5.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        16.0,
+        0.5,
+        -10.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        18.0,
+        0.5,
+        -17.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        21.0,
+        0.5,
+        -24.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        21.0,
+        0.5000019,
+        -29.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        22.0,
+        0.4999981,
+        -31.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "center": [
+        22.0,
+        1.4999981,
+        -31.0
+      ],
+      "size": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color": [
+        0.8,
+        0.7,
+        0.6,
+        1.0
+      ],
+      "rotation_angle": 0.0,
+      "rotation_x": 0.0,
+      "rotation_y": 0.0,
+      "rotation_quat": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    }
+  ]
+}

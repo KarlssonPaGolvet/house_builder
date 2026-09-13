@@ -6,6 +6,7 @@
 
 use crate::types::PlacedBlock;
 use bevy::prelude::*;
+use bevy::tasks::IoTaskPool;
 use serde::{Deserialize, Serialize};
 use std::fs;
 
@@ -86,8 +87,9 @@ pub fn list_saved_houses() -> Vec<String> {
 // CORE SAVE / LOAD LOGIC
 // ============================================================================
 
-/// Reads the active Bevy world and writes it to a JSON file.
-/// This gets called right as the application transitions out of the `Playing` or `Paused` state.
+/// Reads the active Bevy world and writes it asynchronously to a JSON file.
+/// Extraction occurs on the main thread, while serialization and disk I/O are
+/// offloaded to Bevy's background task pool to prevent frame hitches.
 pub fn save_house_to_disk(
     world_name: &str,
     blocks_query: &Query<(&PlacedBlock, &MeshMaterial3d<StandardMaterial>), With<PlacedBlock>>,
@@ -134,11 +136,18 @@ pub fn save_house_to_disk(
         blocks: block_data,
     };
 
-    // Serialize to a pretty-printed JSON string and write to disk
-    if let Ok(json) = serde_json::to_string_pretty(&save_file) {
-        let path = get_save_path(world_name);
-        let _ = fs::write(path, json);
-    }
+    let path = get_save_path(world_name);
+
+    // Offload JSON serialization and file writing to a background task
+    IoTaskPool::get()
+        .spawn(async move {
+            if let Ok(json) = serde_json::to_string_pretty(&save_file) {
+                if let Err(e) = fs::write(&path, json) {
+                    eprintln!("Failed to write save file asynchronously: {}", e);
+                }
+            }
+        })
+        .detach(); // Fire-and-forget task
 }
 
 /// Reads a JSON file from disk and spawns the blocks into the Bevy ECS.
