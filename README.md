@@ -2,15 +2,15 @@
 
 A voxel-style 3D architectural building simulator written in **Rust** using the **Bevy Engine** and **`bevy_egui`**. 
 
-Design structures in a free-flying editor mode, customize block materials and orientations, and switch into a first-person mode to explore your creations with physics, collision, and step-climbing.
+Design structures in **Free Mode**, customize block materials and orientations, and switch into **Human Mode** to explore your creations with physics, collision, and step-climbing.
 
 ---
 
 ## Features
 
 * **Dual Gameplay Modes:**
-  * **Free Flying Mode ("God Mode"):** Fly freely around the scene with noclip controls to place walls, edit blocks, and inspect designs from any angle.
-  * **Human Mode ("Walk Mode"):** Walk through your built world with first-person controls, realistic physics, gravity, jumping, block collision, and smooth step-climbing.
+  * **Free Mode:** Fly freely around the scene with noclip controls to place walls, edit blocks, and inspect designs from any angle.
+  * **Human Mode:** Walk through your built world with first-person controls, realistic physics, gravity, jumping, block collision, and smooth step-climbing.
 * **Precision Grid Building:**
   * Raycast target detection with grid snapping on the floor plane ($100 \times 100$ ground bounds) and adjacent block face attachment.
   * Axis-aligned and rotated bounding box (AABB) raycast intersection algorithms for precise block selection and deletion.
@@ -34,7 +34,7 @@ Design structures in a free-flying editor mode, customize block materials and or
 | `Esc` | Toggle Pause Menu / Resume |
 | `F1` | Reset camera/player back to spawn coordinates |
 
-### Free Camera Mode
+### Free Mode
 | Key | Action |
 | :--- | :--- |
 | `W` / `A` / `S` / `D` | Move Camera (Forward / Left / Backward / Right) |
@@ -42,7 +42,7 @@ Design structures in a free-flying editor mode, customize block materials and or
 | `Hold R` + `W` / `A` / `S` / `D` | Pitch and Yaw (Look Up / Left / Down / Right) |
 | `Q` / `E` | Roll Camera Left / Right |
 
-### Human Walk Mode
+### Human Mode
 | Input | Action |
 | :--- | :--- |
 | `Mouse Move` | First-Person Look (Cursor is automatically locked) |
